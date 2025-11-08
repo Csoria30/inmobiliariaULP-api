@@ -9,6 +9,6 @@
         public string Telefono { get; set; }
         public string Email { get; set; }   
         public bool Estado { get; set; }
-        public List<RolObtenerDTO> Roles { get; set; }
+        public List<RoleObtenerDTO> Roles { get; set; }
     }
 }

@@ -87,7 +87,7 @@ namespace InmobiliariaAPI.InmobiliariaMappers
                 Estado = entidad.Estado,
                 Roles = entidad.PersonaRoles?
                     .Where(pr => pr.Estado)
-                    .Select(pr => new RolObtenerDTO
+                    .Select(pr => new RoleObtenerDTO
                     {
                         RolId = pr.RolId,
                         Nombre = pr.Role?.Nombre,

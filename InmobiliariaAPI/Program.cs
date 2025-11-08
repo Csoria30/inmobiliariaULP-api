@@ -27,21 +27,26 @@ builder.Services.AddDbContext<DataContext>(opciones =>
 //Servicios
 builder.Services.AddScoped<IPersonaService, PersonaService>();
 builder.Services.AddScoped<IInmuebleService, InmuebleService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 //Repositorios
 builder.Services.AddScoped<ICommonRepository<Persona>, PersonaRepository>();
 builder.Services.AddScoped<IPersonaRepository, PersonaRepository>();
 builder.Services.AddScoped<IInmuebleRepository, InmuebleRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 // Validators
 builder.Services.AddScoped<IValidator<PersonaCrearDTO>, personaCrearDTOValidator>();
 builder.Services.AddScoped<IValidator<PersonaActualizarDTO>, PersonaActualizarDTOValidator>();
 builder.Services.AddScoped<IValidator<InmuebleCrearDTO>, InmuebleCrearDTOValidator>();
 builder.Services.AddScoped<IValidator<InmuebleActualizarDTO>, InmuebleActualizarDTOValidator>();
+builder.Services.AddScoped<IValidator<RoleCrearDTO>, RoleCrearDTOValidator>();
+builder.Services.AddScoped<IValidator<RoleActualizarDTO>, RoleActualizarDTOValidator>();
 
 //Mappers
 builder.Services.AddScoped<PersonaMapeo>();
 builder.Services.AddScoped<InmuebleMapeo>();
+builder.Services.AddScoped<RoleMapeo>();
 
 
 builder.Services.AddControllers();
