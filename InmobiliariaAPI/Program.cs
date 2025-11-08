@@ -1,10 +1,12 @@
 using FluentValidation;
 using InmobiliariaAPI.Data;
 using InmobiliariaAPI.InmobiliariaMappers;
+using InmobiliariaAPI.Mappers;
 using InmobiliariaAPI.Models;
 using InmobiliariaAPI.Models.DTO;
 using InmobiliariaAPI.Repository;
 using InmobiliariaAPI.Repository.IRepository;
+using InmobiliariaAPI.Services;
 using InmobiliariaAPI.Services.IServices;
 using InmobiliariaAPI.Validators;
 using Microsoft.EntityFrameworkCore;
@@ -24,10 +26,12 @@ builder.Services.AddDbContext<DataContext>(opciones =>
 
 //Servicios
 builder.Services.AddScoped<IPersonaService, PersonaService>();
+builder.Services.AddScoped<IInmuebleService, InmuebleService>();
 
 //Repositorios
 builder.Services.AddScoped<ICommonRepository<Persona>, PersonaRepository>();
 builder.Services.AddScoped<IPersonaRepository, PersonaRepository>();
+builder.Services.AddScoped<IInmuebleRepository, InmuebleRepository>();
 
 // Validators
 builder.Services.AddScoped<IValidator<PersonaCrearDTO>, personaCrearDTOValidator>();
@@ -37,6 +41,8 @@ builder.Services.AddScoped<IValidator<InmuebleActualizarDTO>, InmuebleActualizar
 
 //Mappers
 builder.Services.AddScoped<PersonaMapeo>();
+builder.Services.AddScoped<InmuebleMapeo>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
