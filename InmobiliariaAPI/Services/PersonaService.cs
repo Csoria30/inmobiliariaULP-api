@@ -33,11 +33,10 @@ namespace InmobiliariaAPI.Repository
         public async Task<PersonaObtenerDTO> CreateAsync(PersonaCrearDTO entity)
         {
             // Validaciones
-            var personaRepo = _personaRepository as PersonaRepository;
-            if (await personaRepo.ExistsByDniAsync(entity.Dni))
+            if (await _personaRepository.ExistsByDniAsync(entity.Dni))
                 throw new InvalidOperationException($"Ya existe una persona con el DNI {entity.Dni}");
 
-            if (await personaRepo.ExistsByEmailAsync(entity.Email))
+            if (await _personaRepository.ExistsByEmailAsync(entity.Email))
                 throw new InvalidOperationException($"Ya existe una persona con el email {entity.Email}");
 
             // Verificar si existe el rol
@@ -154,15 +153,13 @@ namespace InmobiliariaAPI.Repository
 
         public async Task<PersonaObtenerDTO> GetByDniAsync(string dni)
         {
-            var personaRepo = _personaRepository as PersonaRepository;
-            var persona = await personaRepo.GetByDniAsync(dni);
+            var persona = await _personaRepository.GetByDniAsync(dni);
             return persona != null ? _personaMapeo.MapToObtenerDTO(persona) : null;
         }
 
         public async Task<PersonaObtenerDTO> GetByEmailAsync(string email)
         {
-            var personaRepo = _personaRepository as PersonaRepository;
-            var persona = await personaRepo.GetByEmailAsync(email);
+            var persona = await _personaRepository.GetByEmailAsync(email);
             return persona != null ? _personaMapeo.MapToObtenerDTO(persona) : null;
         }
 
