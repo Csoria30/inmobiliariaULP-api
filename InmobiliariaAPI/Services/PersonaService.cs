@@ -13,13 +13,13 @@ namespace InmobiliariaAPI.Repository
 {
     public class PersonaService : IPersonaService
     {
-        private readonly ICommonRepository<Persona> _personaRepository;
+        private readonly IPersonaRepository _personaRepository;
         private readonly PersonaMapeo _personaMapeo;
         private readonly DataContext _dataContext;
 
 
         public PersonaService(
-            ICommonRepository<Persona> personaRepository,
+            IPersonaRepository personaRepository,
             PersonaMapeo personaMapeo,
             DataContext dataContext
             )
