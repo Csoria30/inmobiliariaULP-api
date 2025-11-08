@@ -32,6 +32,8 @@ builder.Services.AddScoped<IPersonaRepository, PersonaRepository>();
 // Validators
 builder.Services.AddScoped<IValidator<PersonaCrearDTO>, personaCrearDTOValidator>();
 builder.Services.AddScoped<IValidator<PersonaActualizarDTO>, PersonaActualizarDTOValidator>();
+builder.Services.AddScoped<IValidator<InmuebleCrearDTO>, InmuebleCrearDTOValidator>();
+builder.Services.AddScoped<IValidator<InmuebleActualizarDTO>, InmuebleActualizarDTOValidator>();
 
 //Mappers
 builder.Services.AddScoped<PersonaMapeo>();
