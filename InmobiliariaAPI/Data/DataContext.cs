@@ -16,6 +16,8 @@ namespace InmobiliariaAPI.Data
             //Persona - PersonaRole - Role: Relación muchos a muchos
             modelBuilder.Entity<PersonaRole>()
                 .HasKey(pr => new { pr.PersonaId, pr.RolId });
+
+            
         }
 
 

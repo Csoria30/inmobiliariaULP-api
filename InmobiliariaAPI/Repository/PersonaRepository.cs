@@ -44,8 +44,6 @@ namespace InmobiliariaAPI.Repository.IRepository
                 .ThenInclude(pr => pr.Role)
             .FirstOrDefaultAsync(p => p.PersonaId == id && p.Estado);
 
-            if (persona == null)
-                return null;
 
             // Actualizar propiedades
             persona.Dni = entity.Dni;
