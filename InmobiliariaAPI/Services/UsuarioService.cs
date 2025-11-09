@@ -167,6 +167,7 @@ namespace InmobiliariaAPI.Services
                 new Claim("personaId", personaId.ToString()) // Claim: Id Persona
             };
 
+
             // Añadir un claim por cada rol 
             foreach (var r in roles.Distinct())
                 claims.Add(new Claim(ClaimTypes.Role, r));

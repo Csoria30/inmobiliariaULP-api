@@ -2,6 +2,7 @@
 using InmobiliariaAPI.Models.DTO;
 using InmobiliariaAPI.Repository.IRepository;
 using InmobiliariaAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,6 +29,7 @@ namespace InmobiliariaAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ADMINISTRADOR")]
         public async Task<IActionResult> CrearPersona([FromBody] PersonaCrearDTO personaCrearDTO)
         {
             var validationResult = await _personaCrearDTOValidacion.ValidateAsync(personaCrearDTO);
@@ -40,6 +42,7 @@ namespace InmobiliariaAPI.Controllers
 
         // GET: api/personas
         [HttpGet]
+        [Authorize(Roles = "ADMINISTRADOR")]
         public async Task<IActionResult> GetAllPersonas()
         {
             var personas = await _personaService.GetAllAsync();
@@ -47,7 +50,8 @@ namespace InmobiliariaAPI.Controllers
         }
 
         // GET: api/personas/{id}
-        [HttpGet("{personaId}")]
+        [HttpGet("{personaId:int}")]
+        [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
         public async Task<IActionResult> GetPersonaPorId(int personaId)
         {
             var persona = await _personaService.GetByIdAsync(personaId);
@@ -58,7 +62,8 @@ namespace InmobiliariaAPI.Controllers
         }
 
         // PUT: api/personas/{id}
-        [HttpPut("{personaId}")]
+        [HttpPut("{personaId:int}")]
+        [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
         public async Task<IActionResult> ActualizarPersona(int personaId, [FromBody] PersonaActualizarDTO personaActualizarDTO)
         {
             var validationResult = await _personaActualizarDTOValidacion.ValidateAsync(personaActualizarDTO);
@@ -73,7 +78,8 @@ namespace InmobiliariaAPI.Controllers
         }
 
         // DELETE: api/personas/{id}
-        [HttpDelete("{personaId}")]
+        [HttpDelete("{personaId:int}")]
+        [Authorize(Roles = "ADMINISTRADOR")]
         public async Task<IActionResult> EliminarPersona(int personaId)
         {
             var personaEliminada = await _personaService.DeleteAsync(personaId, false);
@@ -84,7 +90,8 @@ namespace InmobiliariaAPI.Controllers
         }
 
         // PUT: api/personas/{id}/habilitar
-        [HttpPut("habilitar/{personaId}")]
+        [HttpPut("habilitar/{personaId:int}")]
+        [Authorize(Roles = "ADMINISTRADOR")]
         public async Task<IActionResult> HabilitarPersona(int personaId)
         {
             var personaHabilitada = await _personaService.DeleteAsync(personaId, true);
@@ -95,7 +102,8 @@ namespace InmobiliariaAPI.Controllers
         }
 
         // GET: api/personas/existe/{id}
-        [HttpGet("existe/{personaId}")]
+        [HttpGet("existe/{personaId:int}")]
+        [Authorize(Roles = "ADMINISTRADOR")]
         public async Task<IActionResult> ExistePersona(int personaId)
         {
             var persona = await _personaService.ExistsAsync(personaId);
@@ -106,7 +114,8 @@ namespace InmobiliariaAPI.Controllers
         }
 
         // GET: api/personas/dni/{dni}
-        [HttpGet("dni/{dni}")]
+        [HttpGet("dni/{dni:int}")]
+        [Authorize(Roles = "ADMINISTRADOR")]
         public async Task<IActionResult> BuscarPorDni(string dni)
         {
             var persona = await _personaService.GetByDniAsync(dni);
@@ -116,6 +125,7 @@ namespace InmobiliariaAPI.Controllers
 
         // GET: api/personas/email/{email}
         [HttpGet("email/{email}")]
+        [Authorize(Roles = "ADMINISTRADOR")]
         public async Task<IActionResult> BuscarPorEmail(string email)
         {
             var persona = await _personaService.GetByEmailAsync(email);

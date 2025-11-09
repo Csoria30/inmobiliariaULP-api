@@ -1,5 +1,6 @@
 ﻿using InmobiliariaAPI.Models.DTO;
 using InmobiliariaAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,7 @@ namespace InmobiliariaAPI.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginDTO dto)
         {
             try
@@ -31,6 +33,7 @@ namespace InmobiliariaAPI.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] UsuarioCrearDTO dto)
         {
             try
