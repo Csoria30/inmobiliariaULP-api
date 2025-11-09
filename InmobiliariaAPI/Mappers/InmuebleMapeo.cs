@@ -63,7 +63,7 @@ namespace InmobiliariaAPI.Mappers
                 PrecioBase = dto.PrecioBase,
                 PropietarioId = dto.PropietarioId,
                 TipoId = dto.TipoId,
-                Estado = true
+                Estado = false
             };
         }
 

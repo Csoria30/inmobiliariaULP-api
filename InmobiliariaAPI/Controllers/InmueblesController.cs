@@ -16,22 +16,25 @@ namespace InmobiliariaAPI.Controllers
         private IInmuebleService _inmuebleService;
         private readonly IValidator<InmuebleCrearDTO> _inmuebleCrearDTOValidacion;
         private readonly IValidator<InmuebleActualizarDTO> _inmuebleActualizarDTOValidacion;
+        private readonly IWebHostEnvironment _env;
 
         public InmueblesController(
             IInmuebleService inmuebleService,
             IValidator<InmuebleCrearDTO> inmuebleCrearDTOValidacion,
-            IValidator<InmuebleActualizarDTO> inmuebleActualizarDTOValidacion
+            IValidator<InmuebleActualizarDTO> inmuebleActualizarDTOValidacion,
+            IWebHostEnvironment env
             )
         {
             _inmuebleService = inmuebleService;
             _inmuebleCrearDTOValidacion = inmuebleCrearDTOValidacion;
             _inmuebleActualizarDTOValidacion = inmuebleActualizarDTOValidacion;
+            _env = env;
         }
 
         // POST: api/inmuebles
         [HttpPost]
         [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
-        public async Task<IActionResult> CrearInmueble([FromBody] InmuebleCrearDTO inmuebleCrearDTO)
+        public async Task<IActionResult> CrearInmueble([FromForm] InmuebleCrearDTO inmuebleCrearDTO, [FromForm] IFormFile? foto)
         {
             // Obtener personaId desde el token (claim "personaId")
             var personaId = User.GetPersonaId();
@@ -41,9 +44,31 @@ namespace InmobiliariaAPI.Controllers
             // Forzar propietario desde token: ignorar cualquier PropietarioId enviado por el cliente
             inmuebleCrearDTO.PropietarioId = personaId.Value;
 
+            // FluentValidation
             var validationResult = await _inmuebleCrearDTOValidacion.ValidateAsync(inmuebleCrearDTO);
             if (!validationResult.IsValid)
                 return BadRequest(validationResult.Errors);
+
+            // Envio foto, wwwroot/uploads/inmuebles/
+            if (foto != null && foto.Length > 0)
+            {
+                var uploadsRoot = Path.Combine(_env.WebRootPath ?? "wwwroot", "uploads", "inmuebles");
+                Directory.CreateDirectory(uploadsRoot);
+
+                var ext = Path.GetExtension(foto.FileName);
+                var fileName = $"inmueble_{personaId.Value}_{DateTime.UtcNow:yyyyMMddHHmmss}{ext}";
+                var filePath = Path.Combine(uploadsRoot, fileName);
+
+                using (var stream = System.IO.File.Create(filePath))
+                {
+                    await foto.CopyToAsync(stream);
+                }
+
+                // Si tu DTO/entidad tiene un campo para imagen, asignarlo.
+                // ejemplo: inmuebleCrearDTO.FotoUrl = $"/uploads/inmuebles/{fileName}";
+                // si no existe, lo puedes omitir o gestionar desde el servicio.
+
+            }
 
             try
             {
@@ -65,13 +90,34 @@ namespace InmobiliariaAPI.Controllers
             return Ok(inmuebles);
         }
 
+        // GET: api/inmueblesUsuario
+        [HttpGet]
+        [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
+        public async Task<IActionResult> GetAllInmueblesUsuario()
+        {
+            var personaId = User.GetPersonaId();
+            if (personaId == null) return Unauthorized();
+
+            var inmuebles = await _inmuebleService.GetAllAsync();
+            // Filtrar inmuebles
+            var propios = inmuebles.Where(i => i.PropietarioId == personaId.Value).ToList();
+            return Ok(propios);
+        }
+
         // GET: api/inmuebles/{id}
         [HttpGet("{id:int}")]
         [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
         public async Task<IActionResult> GetInmueblePorId(int id)
         {
+            var personaId = User.GetPersonaId();
+            if (personaId == null) return Unauthorized();
+
             var inmueble = await _inmuebleService.GetByIdAsync(id);
             if (inmueble == null) return NotFound();
+
+            // validar pertenencia
+            if (inmueble.PropietarioId != personaId.Value) return Forbid();
+
             return Ok(inmueble);
         }
 
@@ -80,6 +126,9 @@ namespace InmobiliariaAPI.Controllers
         [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
         public async Task<IActionResult> ActualizarInmueble(int id, [FromBody] InmuebleActualizarDTO inmuebleActualizarDTO)
         {
+            var personaId = User.GetPersonaId();
+            if (personaId == null) return Unauthorized();
+
             var validationResult = await _inmuebleActualizarDTOValidacion.ValidateAsync(inmuebleActualizarDTO);
             if (!validationResult.IsValid)
                 return BadRequest(validationResult.Errors);
@@ -87,6 +136,11 @@ namespace InmobiliariaAPI.Controllers
             // Coherencia entre id de ruta y DTO
             if (inmuebleActualizarDTO.InmuebleId != 0 && inmuebleActualizarDTO.InmuebleId != id)
                 return BadRequest(new { error = "El id del DTO no coincide con el id de la ruta." });
+
+            // Validar que el inmueble pertenece al propietario antes de actualizar
+            var existente = await _inmuebleService.GetByIdAsync(id);
+            if (existente == null) return NotFound();
+            if (existente.PropietarioId != personaId.Value) return Forbid();
 
             try
             {
@@ -100,12 +154,18 @@ namespace InmobiliariaAPI.Controllers
             }
         }
 
-        // DELETE: api/inmuebles/{id}
-        // Desactiva el inmueble (estado = false)
+        // DELETE: api/inmuebles/{id} -> desactivar
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
         public async Task<IActionResult> EliminarInmueble(int id)
         {
+            var personaId = User.GetPersonaId();
+            if (personaId == null) return Unauthorized();
+
+            var existente = await _inmuebleService.GetByIdAsync(id);
+            if (existente == null) return NotFound();
+            if (existente.PropietarioId != personaId.Value) return Forbid();
+
             try
             {
                 var eliminado = await _inmuebleService.DeleteAsync(id, false);
@@ -123,6 +183,13 @@ namespace InmobiliariaAPI.Controllers
         [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
         public async Task<IActionResult> HabilitarInmueble(int id)
         {
+            var personaId = User.GetPersonaId();
+            if (personaId == null) return Unauthorized();
+
+            var existente = await _inmuebleService.GetByIdAsync(id);
+            if (existente == null) return NotFound();
+            if (existente.PropietarioId != personaId.Value) return Forbid();
+
             try
             {
                 var habilitado = await _inmuebleService.DeleteAsync(id, true);
@@ -140,8 +207,15 @@ namespace InmobiliariaAPI.Controllers
         [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
         public async Task<IActionResult> ExisteInmueble(int id)
         {
+            var personaId = User.GetPersonaId();
+            if (personaId == null) return Unauthorized();
+
             var existe = await _inmuebleService.ExistsAsync(id);
             if (existe == null) return NotFound();
+
+            // Validar que el inmueble pertenece al propietario
+            if (existe.PropietarioId != personaId.Value) return Forbid();
+
             return Ok(existe);
         }
 

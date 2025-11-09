@@ -188,6 +188,9 @@ if (app.Environment.IsDevelopment())
 // Aplicar CORS
 app.UseCors();
 
+// Habilitar servir archivos estáticos (wwwroot)
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
