@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using InmobiliariaAPI.Models.DTO;
 using InmobiliariaAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,6 +28,7 @@ namespace InmobiliariaAPI.Controllers
 
         // POST: api/inmuebles
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CrearInmueble([FromBody] InmuebleCrearDTO inmuebleCrearDTO)
         {
             var validationResult = await _inmuebleCrearDTOValidacion.ValidateAsync(inmuebleCrearDTO);

@@ -6,6 +6,5 @@ namespace InmobiliariaAPI.Models.DTO
     {
         public int PersonaId { get; set; }
         public string Password { get; set; }
-        public string Avatar { get; set; }
     }
 }

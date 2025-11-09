@@ -14,13 +14,13 @@ namespace InmobiliariaAPI.Models
         public int PersonaId { get; set; }
 
         [Column("password")]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [Column("avatar")]
-        public string Avatar { get; set; }
+        public string? Avatar { get; set; }
 
         [ForeignKey(nameof(PersonaId))]
-        public virtual Persona Persona { get; set; }
+        public virtual Persona? Persona { get; set; }
     }
 
 }

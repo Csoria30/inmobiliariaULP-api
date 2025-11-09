@@ -11,12 +11,12 @@ namespace InmobiliariaAPI.Models
         public int RolId { get; set; }
 
         [Column("nombre")]
-        public string Nombre { get; set; }
+        public string? Nombre { get; set; }
 
         [Column("descripcion")]
-        public string Descripcion { get; set; }
+        public string? Descripcion { get; set; }
 
         // Navegación
-        public virtual ICollection<PersonaRole> PersonaRoles { get; set; }
+        public virtual ICollection<PersonaRole>? PersonaRoles { get; set; }
     }
 }
