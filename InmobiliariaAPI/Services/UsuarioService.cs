@@ -184,5 +184,38 @@ namespace InmobiliariaAPI.Services
             // Serializar y devolver el token en formato compacto (string)
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        // Cambia pass identificado por personaId
+        public async Task<bool> ChangePasswordAsync(int personaId, string currentPassword, string newPassword)
+        {
+            var usuario = await _usuarioRepository.GetByPersonaIdIncludingPersonaAsync(personaId);
+            if (usuario == null) return false;
+
+            // pass actual
+            if (string.IsNullOrEmpty(usuario.Password) || !BCrypt.Net.BCrypt.Verify(currentPassword, usuario.Password))
+                return false;
+
+            // hashear y guardar nueva pass
+            usuario.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _usuarioRepository.UpdateAsync(usuario.UsuarioId, usuario);
+            return true;
+        }
+
+        // Actualiza solo la URL/avatar del usuario asociado a personaId
+        public async Task<UsuarioObtenerDTO> UpdateAvatarAsync(int personaId, string avatarUrl)
+        {
+            var usuario = await _usuarioRepository.GetByPersonaIdIncludingPersonaAsync(personaId);
+            if (usuario == null) return null;
+
+            usuario.Avatar = avatarUrl;
+            var actualizado = await _usuarioRepository.UpdateAsync(usuario.UsuarioId, usuario);
+
+            return new UsuarioObtenerDTO
+            {
+                UsuarioId = actualizado.UsuarioId,
+                PersonaId = actualizado.PersonaId,
+                Avatar = actualizado.Avatar
+            };
+        }
     }
 }

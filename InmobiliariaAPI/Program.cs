@@ -51,6 +51,8 @@ builder.Services.AddScoped<IValidator<InmuebleActualizarDTO>, InmuebleActualizar
 builder.Services.AddScoped<IValidator<RoleCrearDTO>, RoleCrearDTOValidator>();
 builder.Services.AddScoped<IValidator<RoleActualizarDTO>, RoleActualizarDTOValidator>();
 builder.Services.AddScoped<IValidator<UsuarioCrearDTO>, UsuarioCrearDTOValidator>();
+builder.Services.AddScoped<IValidator<CambiarPasswordDTO>, CambiarPasswordDTOValidator>();
+builder.Services.AddScoped<IValidator<AvatarUploadDTO>, AvatarUploadDTOValidator>();
 
 //Mappers
 builder.Services.AddScoped<PersonaMapeo>();
