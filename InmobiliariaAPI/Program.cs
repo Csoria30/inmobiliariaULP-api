@@ -13,6 +13,7 @@ using InmobiliariaAPI.Swagger;
 using InmobiliariaAPI.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -60,6 +61,28 @@ builder.Services.AddScoped<PersonaMapeo>();
 builder.Services.AddScoped<InmuebleMapeo>();
 builder.Services.AddScoped<RoleMapeo>();
 
+//Middleware Errores centralizados
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(x => x.Value.Errors.Count > 0)
+            .SelectMany(kvp => kvp.Value.Errors.Select(e => e.ErrorMessage))
+            .ToList();
+
+        var response = new InmobiliariaAPI.Models.DTO.ApiResponse<object>
+        {
+            StatusCode = System.Net.HttpStatusCode.BadRequest,
+            IsSuccess = false,
+            ErrorMessages = errors,
+            Result = null
+        };
+
+        return new BadRequestObjectResult(response);
+    };
+});
+
 // Controllers 
 builder.Services.AddControllers();
 
@@ -98,24 +121,6 @@ if (!string.IsNullOrEmpty(jwtKey))
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
-
-        // Eventos opcionales (ej. permitir token en query para casos concretos)
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access_token"].FirstOrDefault();
-                var path = context.HttpContext.Request.Path;
-                // Si necesitas aceptar token por query en rutas concretas, añade aquí las rutas.
-                if (!string.IsNullOrEmpty(accessToken) &&
-                    (path.StartsWithSegments("/api/uploads") /* ejemplo */))
-                {
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
-            }
-        };
-
     });
 }
 
@@ -175,7 +180,11 @@ builder.Services.AddSwaggerGen(options =>
     options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
+// Build the app
 var app = builder.Build();
+
+// Use Middleware de manejo centralizado de errores
+app.UseMiddleware<InmobiliariaAPI.Middleware.ErrorHandlerMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

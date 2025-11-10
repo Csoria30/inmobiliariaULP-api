@@ -3,12 +3,13 @@ using InmobiliariaAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace InmobiliariaAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : ApiControllerBase
     {
         private readonly IUsuarioService _usuarioService;
 
@@ -21,30 +22,16 @@ namespace InmobiliariaAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginDTO dto)
         {
-            try
-            {
-                var auth = await _usuarioService.AuthenticateAsync(dto);
-                return Ok(auth);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Unauthorized(new { error = ex.Message });
-            }
+            var auth = await _usuarioService.AuthenticateAsync(dto);
+            return ApiOk(auth);
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UsuarioCrearDTO dto)
         {
-            try
-            {
-                var creado = await _usuarioService.CreateAsync(dto);
-                var location = $"/api/usuarios/{creado.UsuarioId}"; 
-                return Created(location, creado); // Devolver 201 Created con Location
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var creado = await _usuarioService.CreateAsync(dto);
+            var location = $"/api/usuarios/{creado.UsuarioId}";
+            return ApiCreated(location, creado); // Devolver 201 
         }
     }
 }
