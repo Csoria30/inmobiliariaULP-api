@@ -13,5 +13,6 @@ namespace InmobiliariaAPI.Models.DTO
         public int PropietarioId { get; set; }
         public int TipoId { get; set; }
         public bool Estado { get; set; }
+        public string? Imagen { get; set; }
     }
 }

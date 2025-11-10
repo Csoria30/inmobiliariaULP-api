@@ -46,7 +46,8 @@ namespace InmobiliariaAPI.Repository
             inmueble.Estado = entity.Estado;
             inmueble.PropietarioId = entity.PropietarioId;
             inmueble.TipoId = entity.TipoId;
-            
+            inmueble.Imagen = entity.Imagen;
+
             _dataContext.Inmuebles.Update(inmueble);
             await Save();
 

@@ -9,7 +9,9 @@ namespace InmobiliariaAPI.Models.DTO
         public int Ambientes { get; set; }
         public string Coordenadas { get; set; }
         public decimal PrecioBase { get; set; }
-        public int PropietarioId { get; set; }
+        public int PropietarioId { get; set; } // Se obtiene desde el token
         public int TipoId { get; set; }
+        public string? Imagen { get; set; }
+
     }
 }

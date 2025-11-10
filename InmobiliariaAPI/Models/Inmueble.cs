@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InmobiliariaAPI.Models
@@ -34,6 +35,9 @@ namespace InmobiliariaAPI.Models
 
         [Column("id_tipo")]
         public int TipoId { get; set; }
+        
+        [Column("imagen")]
+        public string? Imagen { get; set; }
 
         [ForeignKey(nameof(PropietarioId))]
         public virtual Persona Propietario { get; set; }

@@ -9,6 +9,7 @@ using InmobiliariaAPI.Repository;
 using InmobiliariaAPI.Repository.IRepository;
 using InmobiliariaAPI.Services;
 using InmobiliariaAPI.Services.IServices;
+using InmobiliariaAPI.Swagger;
 using InmobiliariaAPI.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -170,6 +171,8 @@ builder.Services.AddSwaggerGen(options =>
         Title = "Inmobiliaria API",
         Description = "API de la inmobiliaria"
     });
+
+    options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
 var app = builder.Build();
@@ -188,8 +191,8 @@ if (app.Environment.IsDevelopment())
 // Aplicar CORS
 app.UseCors();
 
-// Habilitar servir archivos estáticos (wwwroot)
-app.UseStaticFiles();
+// Habilitar archivos estaticos (wwwroot)
+//app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 

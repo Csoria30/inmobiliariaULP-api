@@ -19,7 +19,8 @@ namespace InmobiliariaAPI.Mappers
                 PrecioBase = entidad.PrecioBase,
                 PropietarioId = entidad.PropietarioId,
                 TipoId = entidad.TipoId,
-                Estado = entidad.Estado
+                Estado = entidad.Estado,
+                Imagen = entidad.Imagen
             };
         }
 
@@ -34,7 +35,8 @@ namespace InmobiliariaAPI.Mappers
                 Coordenadas = entidad.Coordenadas,
                 PrecioBase = entidad.PrecioBase,
                 PropietarioId = entidad.PropietarioId,
-                TipoId = entidad.TipoId
+                TipoId = entidad.TipoId,
+                Imagen = entidad.Imagen
             };
         }
 
@@ -49,6 +51,7 @@ namespace InmobiliariaAPI.Mappers
             entidad.PropietarioId = dto.PropietarioId;
             entidad.TipoId = dto.TipoId;
             entidad.Estado = dto.Estado;
+            entidad.Imagen = dto.Imagen?.Trim();
         }
 
         public override Inmueble MapToEntidadDesdeCrear(InmuebleCrearDTO dto)
@@ -63,7 +66,8 @@ namespace InmobiliariaAPI.Mappers
                 PrecioBase = dto.PrecioBase,
                 PropietarioId = dto.PropietarioId,
                 TipoId = dto.TipoId,
-                Estado = false
+                Estado = false,
+                Imagen = dto.Imagen?.Trim()
             };
         }
 
@@ -80,7 +84,8 @@ namespace InmobiliariaAPI.Mappers
                 PrecioBase = dto.PrecioBase,
                 PropietarioId = dto.PropietarioId,
                 TipoId = dto.TipoId,
-                Estado = dto.Estado
+                Estado = dto.Estado,
+                Imagen = dto.Imagen?.Trim()
             };
         }
 
@@ -97,7 +102,8 @@ namespace InmobiliariaAPI.Mappers
                 PrecioBase = entidad.PrecioBase,
                 Estado = entidad.Estado,
                 PropietarioId = entidad.PropietarioId,
-                TipoId = entidad.TipoId
+                TipoId = entidad.TipoId,
+                Imagen = entidad.Imagen?.Trim()
             };
         }
 

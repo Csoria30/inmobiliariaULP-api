@@ -33,13 +33,13 @@ namespace InmobiliariaAPI.Controllers
         }
 
         [HttpPost("register")]
-        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] UsuarioCrearDTO dto)
         {
             try
             {
                 var creado = await _usuarioService.CreateAsync(dto);
-                return CreatedAtAction(null, new { id = creado.UsuarioId }, creado);
+                var location = $"/api/usuarios/{creado.UsuarioId}"; 
+                return Created(location, creado); // Devolver 201 Created con Location
             }
             catch (InvalidOperationException ex)
             {

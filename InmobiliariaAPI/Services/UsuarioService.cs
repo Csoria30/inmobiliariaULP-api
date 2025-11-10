@@ -42,7 +42,8 @@ namespace InmobiliariaAPI.Services
                 .Any(pr => pr.Estado
                            && pr.Role != null
                            && (string.Equals(pr.Role.Nombre, "Empleado", StringComparison.OrdinalIgnoreCase)
-                               || string.Equals(pr.Role.Nombre, "Propietario", StringComparison.OrdinalIgnoreCase)))
+                               || string.Equals(pr.Role.Nombre, "PROPIETARIO", StringComparison.OrdinalIgnoreCase)
+                               ))
                 == true;
 
             if (!tieneRolValido)
@@ -114,8 +115,8 @@ namespace InmobiliariaAPI.Services
             var tokenString = BuildToken(usuario.UsuarioId, usuario.Persona.PersonaId, roles);
 
             // Calcular fecha de expiración para devolver en la respuesta
-            var expiresMinutes = int.Parse(_config["Jwt:ExpiresMinutes"] ?? "60");
-            var expiresAt = DateTime.UtcNow.AddMinutes(expiresMinutes);
+            //var expiresMinutes = int.Parse(_config["Jwt:ExpiresMinutes"] ?? "60");
+            var expiresAt = DateTime.UtcNow.AddHours(24);
 
             // Devolver DTO de autenticación con token
             return new AuthResponseDTO
@@ -172,12 +173,15 @@ namespace InmobiliariaAPI.Services
             foreach (var r in roles.Distinct())
                 claims.Add(new Claim(ClaimTypes.Role, r));
 
+            // Expiración a 24 horas
+            var expiresAt = DateTime.UtcNow.AddHours(24);
+
             // Crear el token JWT con issuer, audience, claims, expiración y firma
             var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"], // emisor del token (desde configuración)
-                audience: _config["Jwt:Audience"], // audiencia del token (desde configuración)
+                issuer: _config["Jwt:Issuer"], // emisor del token 
+                audience: _config["Jwt:Audience"], // audiencia del token 
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(int.Parse(_config["Jwt:ExpiresMinutes"] ?? "60")), // expiración
+                expires: expiresAt,
                 signingCredentials: creds // credenciales de firma
             );
 
