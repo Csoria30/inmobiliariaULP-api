@@ -8,18 +8,6 @@ using System.Security;
 using System.Text;
 using System.Text.Json;
 
-csharp Middleware/ErrorHandlerMiddleware.cs
-using InmobiliariaAPI.Models.DTO;
-using InmobiliariaAPI.Exceptions;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.IdentityModel.Tokens;
-using MySqlConnector;
-using System.Data.Common;
-using System.Net;
-using System.Security;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace InmobiliariaAPI.Middleware
 {

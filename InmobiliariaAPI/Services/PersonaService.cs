@@ -9,6 +9,7 @@ using InmobiliariaAPI.Services.IServices;
 using InmobiliariaAPI.Validators;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using System.Net;
 
 namespace InmobiliariaAPI.Repository
