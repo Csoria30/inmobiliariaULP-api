@@ -41,7 +41,7 @@ namespace InmobiliariaAPI.Services
             var tieneRolValido = persona.PersonaRoles?
                 .Any(pr => pr.Estado
                            && pr.Role != null
-                           && (string.Equals(pr.Role.Nombre, "Empleado", StringComparison.OrdinalIgnoreCase)
+                           && (string.Equals(pr.Role.Nombre, "EMPLEADO", StringComparison.OrdinalIgnoreCase)
                                || string.Equals(pr.Role.Nombre, "PROPIETARIO", StringComparison.OrdinalIgnoreCase)
                                ))
                 == true;

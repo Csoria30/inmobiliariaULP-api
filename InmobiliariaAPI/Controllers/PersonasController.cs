@@ -5,12 +5,13 @@ using InmobiliariaAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace InmobiliariaAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PersonasController : ControllerBase
+    public class PersonasController : ApiControllerBase
     {
         private IPersonaService _personaService;
         private readonly IValidator<PersonaCrearDTO> _personaCrearDTOValidacion;
@@ -34,10 +35,14 @@ namespace InmobiliariaAPI.Controllers
         {
             var validationResult = await _personaCrearDTOValidacion.ValidateAsync(personaCrearDTO);
             if (!validationResult.IsValid)
-                return BadRequest(validationResult.Errors);
+            {
+                var messages = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+                return ApiError(HttpStatusCode.BadRequest, "Validación inválida", messages);
+            }
 
             var nuevaPersona = await _personaService.CreateAsync(personaCrearDTO);
-            return CreatedAtAction(nameof(GetPersonaPorId), new { id = nuevaPersona.PersonaId }, nuevaPersona);
+            var location = $"/api/personas/{nuevaPersona.PersonaId}";
+            return ApiCreated(location, nuevaPersona);
         }
 
         // GET: api/personas
@@ -46,7 +51,7 @@ namespace InmobiliariaAPI.Controllers
         public async Task<IActionResult> GetAllPersonas()
         {
             var personas = await _personaService.GetAllAsync();
-            return Ok(personas);
+            return ApiOk(personas);
         }
 
         // GET: api/personas/{id}
@@ -55,10 +60,7 @@ namespace InmobiliariaAPI.Controllers
         public async Task<IActionResult> GetPersonaPorId(int personaId)
         {
             var persona = await _personaService.GetByIdAsync(personaId);
-            if (persona == null)
-                return NotFound();
-
-            return Ok(persona);
+            return ApiOk(persona);
         }
 
         // PUT: api/personas/{id}
@@ -68,13 +70,13 @@ namespace InmobiliariaAPI.Controllers
         {
             var validationResult = await _personaActualizarDTOValidacion.ValidateAsync(personaActualizarDTO);
             if (!validationResult.IsValid)
-                return BadRequest(validationResult.Errors);
+            {
+                var messages = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+                return ApiError(HttpStatusCode.BadRequest, "Validación inválida", messages);
+            }
 
             var personaActualizada = await _personaService.UpdateAsync(personaId, personaActualizarDTO);
-            if (personaActualizada == null)
-                return NotFound();
-
-            return Ok(personaActualizada);
+            return ApiOk(personaActualizada);
         }
 
         // DELETE: api/personas/{id}
@@ -83,10 +85,7 @@ namespace InmobiliariaAPI.Controllers
         public async Task<IActionResult> EliminarPersona(int personaId)
         {
             var personaEliminada = await _personaService.DeleteAsync(personaId, false);
-            if (personaEliminada == null)
-                return BadRequest();
-
-            return Ok(personaEliminada);
+            return ApiOk(personaEliminada);
         }
 
         // PUT: api/personas/{id}/habilitar
@@ -95,10 +94,7 @@ namespace InmobiliariaAPI.Controllers
         public async Task<IActionResult> HabilitarPersona(int personaId)
         {
             var personaHabilitada = await _personaService.DeleteAsync(personaId, true);
-            if (personaHabilitada == null)
-                return NotFound();
-
-            return Ok(personaHabilitada);
+            return ApiOk(personaHabilitada);
         }
 
         // GET: api/personas/existe/{id}
@@ -107,10 +103,7 @@ namespace InmobiliariaAPI.Controllers
         public async Task<IActionResult> ExistePersona(int personaId)
         {
             var persona = await _personaService.ExistsAsync(personaId);
-            if (persona == null)
-                return NotFound();
-
-            return Ok(persona);
+            return ApiOk(persona);
         }
 
         // GET: api/personas/dni/{dni}
@@ -119,8 +112,7 @@ namespace InmobiliariaAPI.Controllers
         public async Task<IActionResult> BuscarPorDni(string dni)
         {
             var persona = await _personaService.GetByDniAsync(dni);
-            if (persona == null) return NotFound();
-            return Ok(persona);
+            return ApiOk(persona);
         }
 
         // GET: api/personas/email/{email}
@@ -129,8 +121,7 @@ namespace InmobiliariaAPI.Controllers
         public async Task<IActionResult> BuscarPorEmail(string email)
         {
             var persona = await _personaService.GetByEmailAsync(email);
-            if (persona == null) return NotFound();
-            return Ok(persona);
+            return ApiOk(persona);
         }
 
 

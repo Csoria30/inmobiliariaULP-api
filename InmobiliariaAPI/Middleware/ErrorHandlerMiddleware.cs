@@ -1,8 +1,25 @@
-﻿using InmobiliariaAPI.Models.DTO;
+﻿using InmobiliariaAPI.Exceptions;
+using InmobiliariaAPI.Models.DTO;
+using Microsoft.IdentityModel.Tokens;
+using MySqlConnector;
+using System.Data.Common;
 using System.Net;
 using System.Security;
 using System.Text;
 using System.Text.Json;
+
+csharp Middleware/ErrorHandlerMiddleware.cs
+using InmobiliariaAPI.Models.DTO;
+using InmobiliariaAPI.Exceptions;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.IdentityModel.Tokens;
+using MySqlConnector;
+using System.Data.Common;
+using System.Net;
+using System.Security;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace InmobiliariaAPI.Middleware
 {
@@ -10,15 +27,17 @@ namespace InmobiliariaAPI.Middleware
     public class ErrorHandlerMiddleware
     {
         private readonly RequestDelegate _next; // invocar el siguiente middleware
-        private readonly ILogger<ErrorHandlerMiddleware> _logger; 
+        private readonly ILogger<ErrorHandlerMiddleware> _logger;
+        private readonly IWebHostEnvironment _env;
 
         // Constructor
-        public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger)
+        public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger, IWebHostEnvironment env)
         {
             _next = next;         // guardar referencia al siguiente componente
             _logger = logger;     // guardar logger
+            _env = env;
         }
-        
+
         public async Task Invoke(HttpContext context)
         {
             try
@@ -52,103 +71,107 @@ namespace InmobiliariaAPI.Middleware
 
                     await context.Response.WriteAsync(payload);
                 }
-
-
             }
             catch (Exception ex)
             {
-                // Eexcepcion no capturada
+                // Excepción no capturada
                 _logger.LogError(ex, "Unhandled exception"); // registrar detalle en logs
-                await HandleExceptionAsync(context, ex);     // construir y enviar respuesta uniforme
+                await HandleExceptionAsync(context, ex, _env.IsDevelopment());     // construir y enviar respuesta uniforme
             }
         }
 
         // Metodo estático que construye la respuesta JSON uniforme para errores.
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private static Task HandleExceptionAsync(HttpContext context, Exception exception, bool isDevelopment)
         {
             // Por defecto, consideramos 500 Internal Server Error.
             var code = HttpStatusCode.InternalServerError;
             var userMessages = new List<string>();
 
-            // Mapear excepciones especificas
-            switch (exception)
+            // Mapear excepciones especificas mediante comprobaciones explícitas
+            if (exception is ArgumentNullException || exception is ArgumentException || exception is FormatException || exception is ArgumentOutOfRangeException)
             {
-                case ArgumentNullException:
-                case ArgumentException:
-                case FormatException:
-                    code = HttpStatusCode.BadRequest;
-                    userMessages.Add("Entrada inválida.");
-                    break;
-
-                case System.ComponentModel.DataAnnotations.ValidationException:
-                case FluentValidation.ValidationException:
-                    code = HttpStatusCode.BadRequest;
-                    userMessages.Add("Errores de validación.");
-                    break;
-
-                case KeyNotFoundException:
-                case FileNotFoundException:
-                    code = HttpStatusCode.NotFound;
-                    userMessages.Add("Recurso no encontrado.");
-                    break;
-
-                case UnauthorizedAccessException:
-                case System.Security.Authentication.AuthenticationException:
-                    code = HttpStatusCode.Unauthorized;
-                    userMessages.Add("No autorizado.");
-                    break;
-
-                case SecurityException:
-                    code = HttpStatusCode.Forbidden;
-                    userMessages.Add("Acceso prohibido.");
-                    break;
-
-                case TimeoutException:
-                case OperationCanceledException:
-                    code = HttpStatusCode.RequestTimeout;
-                    userMessages.Add("La operación ha expirado.");
-                    break;
-
-                case NotImplementedException:
-                    code = HttpStatusCode.NotImplemented;
-                    userMessages.Add("Funcionalidad no implementada.");
-                    break;
-
-                // Si usas EF Core, considera mapear DbUpdateConcurrencyException a 409
-                case Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException:
-                    code = HttpStatusCode.Conflict;
-                    userMessages.Add("Conflicto de concurrencia.");
-                    break;
-
-                case InvalidOperationException:
-                    code = HttpStatusCode.BadRequest;
-                    userMessages.Add("Operación inválida.");
-                    break;
-
-                default:
-                    // Para excepciones no mapeadas, mantener 500 y mensaje genérico.
-                    userMessages.Add("Error interno del servidor.");
-                    break;
+                code = HttpStatusCode.BadRequest;
+                userMessages.Add("Entrada inválida.");
+            }
+            else if (exception is System.ComponentModel.DataAnnotations.ValidationException || exception is FluentValidation.ValidationException)
+            {
+                code = HttpStatusCode.BadRequest;
+                userMessages.Add("Errores de validación.");
+            }
+            else if (exception is KeyNotFoundException || exception is FileNotFoundException)
+            {
+                code = HttpStatusCode.NotFound;
+                userMessages.Add("Recurso no encontrado.");
+            }
+            else if (exception is UnauthorizedAccessException || exception is SecurityTokenException || exception is System.Security.Authentication.AuthenticationException)
+            {
+                code = HttpStatusCode.Unauthorized;
+                userMessages.Add("No autorizado.");
+            }
+            else if (exception is SecurityException)
+            {
+                code = HttpStatusCode.Forbidden;
+                userMessages.Add("Acceso prohibido.");
+            }
+            else if (exception is TimeoutException || exception is OperationCanceledException || exception is TaskCanceledException)
+            {
+                code = HttpStatusCode.RequestTimeout;
+                userMessages.Add("La operación ha expirado.");
+            }
+            else if (exception is NotImplementedException)
+            {
+                code = HttpStatusCode.NotImplemented;
+                userMessages.Add("Funcionalidad no implementada.");
+            }
+            else if (exception is Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+            {
+                code = HttpStatusCode.Conflict;
+                userMessages.Add("Conflicto de concurrencia.");
+            }
+            else if (exception is Microsoft.EntityFrameworkCore.DbUpdateException || exception is DbException || exception is MySqlException)
+            {
+                code = HttpStatusCode.Conflict;
+                userMessages.Add("Error en la base de datos.");
+            }
+            else if (exception is InvalidOperationException)
+            {
+                code = HttpStatusCode.BadRequest;
+                userMessages.Add("Operación inválida.");
+            }
+            else if (exception is NotFoundException)
+            {
+                code = HttpStatusCode.NotFound;
+                userMessages.Add(exception.Message); // se mostrará el mensaje (y en Development aparecerá primero si lo tienes configurado)
+            }
+            else
+            {
+                // Para excepciones no mapeadas, mantener 500 y mensaje genérico.
+                userMessages.Add("Error interno del servidor.");
             }
 
+            // Si estamos en Development, añadir el message original (útil para debugging)
+            if (isDevelopment)
+            {
+                userMessages.Insert(0, exception.Message);
+            }
+
+            // Usar mensajes controlados para devolver al cliente; si no hay mensajes, exponer genérico.
+            var responseMessages = userMessages.Count > 0
+                ? userMessages
+                : new List<string> { "Error interno del servidor." };
 
             // Construir el objeto de respuesta estandar (ApiResponse<object>)
             var response = new ApiResponse<object>
             {
-                StatusCode = code,                        
-                IsSuccess = false,                        
-                ErrorMessages = new List<string> { exception.Message }, // mensaje para cliente (simple)
-                Result = null                             // no hay resultado válido
+                StatusCode = code,
+                IsSuccess = false,
+                ErrorMessages = responseMessages,
+                Result = null
             };
 
-            // Serializar la respuesta a JSON 
             var payload = JsonSerializer.Serialize(response);
-
-            // Preparar la respuesta HTTP
-            context.Response.ContentType = "application/json";    // tipo de contenido
-            context.Response.StatusCode = (int)code;             // código HTTP numérico
-
-            
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)code;
             return context.Response.WriteAsync(payload);
         }
     }

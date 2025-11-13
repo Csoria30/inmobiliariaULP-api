@@ -2,6 +2,7 @@
 using InmobiliariaAPI.Mappers;
 using InmobiliariaAPI.Models;
 using InmobiliariaAPI.Models.DTO;
+using InmobiliariaAPI.Repository;
 using InmobiliariaAPI.Repository.IRepository;
 using InmobiliariaAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
@@ -13,16 +14,66 @@ namespace InmobiliariaAPI.Services
         private readonly IRoleRepository _roleRepository;
         private readonly RoleMapeo _roleMapeo;
         private readonly DataContext _dataContext;
+        private readonly IPersonaService _personaService;
+        private readonly IPersonaRepository _personaRepository;
 
         public RoleService(
             IRoleRepository roleRepository,
             RoleMapeo roleMapeo,
-            DataContext dataContext
+            DataContext dataContext,
+            IPersonaService personaService,
+            IPersonaRepository personaRepository
             )
         {
-            _dataContext = dataContext;
-            _roleMapeo = roleMapeo;
             _roleRepository = roleRepository;
+            _roleMapeo = roleMapeo;
+            _dataContext = dataContext;
+            _personaService = personaService;
+            _personaRepository = personaRepository;
+        }
+
+        public async Task<object> AssignRoleAsync(int personaId, int rolId)
+        {
+            if (personaId <= 0 || rolId <= 0)
+                throw new InvalidOperationException("PersonaId y RolId deben ser mayores que 0.");
+
+            // Verificar existencia de persona
+            var personaDto = await _personaService.ExistsAsync(personaId);
+            if (personaDto == null)
+                throw new InvalidOperationException($"La persona con ID {personaId} no existe.");
+
+            // Verificar existencia de rol
+            var rol = await _roleRepository.GetByIdAsync(rolId);
+            if (rol == null)
+                throw new InvalidOperationException($"El rol con ID {rolId} no existe.");
+
+            // Obtener roles activos actuales 
+            var activos = await _personaRepository.GetActiveRolesAsync(personaId);
+
+            // Determinar si el rol quedó activo
+            var asociadoActivo = activos.FirstOrDefault(pr => pr.RolId == rolId);
+
+            var result = new
+            {
+                personaId,
+                rolId,
+                nombreRol = rol.Nombre,
+                estado = asociadoActivo != null && asociadoActivo.Estado,
+                fechaAlta = asociadoActivo?.FechaAlta,
+                fechaBaja = asociadoActivo?.FechaBaja,
+                rolesActivos = activos.Select(pr => new
+                {
+                    pr.PersonaId,
+                    pr.RolId,
+                    nombre = pr.Role?.Nombre,
+                    pr.FechaAlta,
+                    pr.FechaBaja,
+                    pr.Estado
+                }).ToList(),
+                message = asociadoActivo != null ? "Rol asignado/activado" : "Rol desactivado/quitado"
+            };
+
+            return result;
         }
 
         public async Task<RoleObtenerDTO> CreateAsync(RoleCrearDTO entity)

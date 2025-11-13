@@ -14,16 +14,19 @@ namespace InmobiliariaAPI.Controllers
         private IRoleService _roleService;
         private readonly IValidator<RoleCrearDTO> _roleCrearValidator;
         private readonly IValidator<RoleActualizarDTO> _roleActualizarValidator;
+        private readonly IValidator<PersonaRoleAsignarDTO> _asignarRolValidator;
 
         public RolesController(
             IRoleService roleService,
             IValidator<RoleCrearDTO> roleCrearValidator,
-            IValidator<RoleActualizarDTO> roleActualizarValidator
+            IValidator<RoleActualizarDTO> roleActualizarValidator,
+            IValidator<PersonaRoleAsignarDTO> asignarRolValidator
             )
         {
             _roleService = roleService;
             _roleCrearValidator = roleCrearValidator;
             _roleActualizarValidator = roleActualizarValidator;
+            _asignarRolValidator = asignarRolValidator;
         }
 
         // POST: api/roles
@@ -113,5 +116,39 @@ namespace InmobiliariaAPI.Controllers
             if (existe == null) return NotFound();
             return Ok(existe);
         }
+
+        // POST: api/roles/asignar
+        [HttpPost("asignar")]
+        [Authorize(Roles = "ADMINISTRADOR")]
+        public async Task<IActionResult> AsignarRol([FromBody] PersonaRoleAsignarDTO dto)
+        {
+            // FluentValidation
+            var validationResult = await _asignarRolValidator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+            {
+                var messages = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+                return BadRequest(new { error = messages });
+            }
+
+            try
+            {
+                var resultado = await _roleService.AssignRoleAsync(dto.PersonaId, dto.RolId);
+                return Ok(resultado);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Error interno al asignar rol." });
+            }
+
+        }
+
     }
 }

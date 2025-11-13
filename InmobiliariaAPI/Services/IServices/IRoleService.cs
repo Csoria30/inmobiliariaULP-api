@@ -5,5 +5,6 @@ namespace InmobiliariaAPI.Services.IServices
 {
     public interface IRoleService : ICommonService<RoleObtenerDTO, RoleCrearDTO, RoleActualizarDTO>
     {
+        Task<object> AssignRoleAsync(int personaId, int rolId);
     }
 }

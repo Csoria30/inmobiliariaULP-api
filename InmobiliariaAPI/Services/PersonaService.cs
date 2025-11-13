@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using InmobiliariaAPI.Data;
+using InmobiliariaAPI.Exceptions;
 using InmobiliariaAPI.InmobiliariaMappers;
 using InmobiliariaAPI.Models;
 using InmobiliariaAPI.Models.DTO;
@@ -8,6 +9,7 @@ using InmobiliariaAPI.Services.IServices;
 using InmobiliariaAPI.Validators;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace InmobiliariaAPI.Repository
 {
@@ -73,7 +75,6 @@ namespace InmobiliariaAPI.Repository
 
                 await _dataContext.PersonaRoles.AddAsync(personaRol);
                 await _dataContext.SaveChangesAsync();
-
                 await transaction.CommitAsync();
 
                 return _personaMapeo.MapToObtenerDTO(personaCreada);
@@ -90,7 +91,8 @@ namespace InmobiliariaAPI.Repository
         {
             var persona = await _personaRepository.CambiarEstadoAsync(id, estado);
             if (persona == null)
-                return null;
+                throw new NotFoundException($"La persona con ID {id} no existe.");
+
 
             return _personaMapeo.MapToObtenerDTO(persona);
         }
@@ -99,7 +101,7 @@ namespace InmobiliariaAPI.Repository
         {
             var persona = await _personaRepository.GetByIdAsync(id);
             if (persona == null || !persona.Estado)
-                return null;
+                throw new NotFoundException($"La persona con ID {id} no existe.");
 
             return _personaMapeo.MapToObtenerDTO(persona);
         }
@@ -114,7 +116,7 @@ namespace InmobiliariaAPI.Repository
         {
             var perpsona = await _personaRepository.GetByIdAsync(id);
             if (perpsona == null || !perpsona.Estado)
-                return null;
+                throw new NotFoundException($"La persona con ID {id} no existe.");
 
             return _personaMapeo.MapToObtenerDTO(perpsona);
         }
@@ -123,15 +125,14 @@ namespace InmobiliariaAPI.Repository
         {
             var persona = await _personaRepository.GetByIdAsync(id);
             if (persona == null)
-                return null;
+                throw new NotFoundException($"La persona con ID {id} no existe.");
 
-            // Verificar duplicados solo si cambió el DNI o email
-            var personaRepo = _personaRepository as PersonaRepository;
-            if (persona.Dni != entity.Dni && await personaRepo.ExistsByDniAsync(entity.Dni))
-                throw new InvalidOperationException($"Ya existe una persona con el DNI {entity.Dni}");
+            // Verificar duplicados solo si cambio el DNI o email
+            if (!string.Equals(persona.Dni, entity.Dni, StringComparison.OrdinalIgnoreCase) && await _personaRepository.ExistsByDniAsync(entity.Dni))
+                throw new DuplicateResourceException($"Ya existe una persona con el DNI {entity.Dni}");
 
-            if (persona.Email != entity.Email && await personaRepo.ExistsByEmailAsync(entity.Email))
-                throw new InvalidOperationException($"Ya existe una persona con el email {entity.Email}");
+            if (!string.Equals(persona.Email, entity.Email, StringComparison.OrdinalIgnoreCase) && await _personaRepository.ExistsByEmailAsync(entity.Email))
+                throw new DuplicateResourceException($"Ya existe una persona con el email {entity.Email}");
 
             // Actualizar datos de la persona
             persona.Dni = entity.Dni?.Trim();
@@ -145,22 +146,26 @@ namespace InmobiliariaAPI.Repository
             var personaActualizada = await _personaRepository.UpdateAsync(id, persona);
 
             return _personaMapeo.MapToObtenerDTO(personaActualizada);
-
-
         }
 
+        
         // Metodos Extras
-
         public async Task<PersonaObtenerDTO> GetByDniAsync(string dni)
         {
             var persona = await _personaRepository.GetByDniAsync(dni);
-            return persona != null ? _personaMapeo.MapToObtenerDTO(persona) : null;
+            if(persona == null)
+                throw new NotFoundException($"La persona con DNI {dni} no existe.");
+
+            return _personaMapeo.MapToObtenerDTO(persona);
         }
 
         public async Task<PersonaObtenerDTO> GetByEmailAsync(string email)
         {
             var persona = await _personaRepository.GetByEmailAsync(email);
-            return persona != null ? _personaMapeo.MapToObtenerDTO(persona) : null;
+            if (persona == null)
+                throw new NotFoundException($"La persona con DNI {email} no existe.");
+
+            return _personaMapeo.MapToObtenerDTO(persona);
         }
 
 
