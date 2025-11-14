@@ -34,7 +34,7 @@ namespace InmobiliariaAPI.Controllers
 
         // POST: api/inmuebles
         [HttpPost]
-        [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
+        [Authorize(Policy = "PropietarioOrAdmin")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CrearInmueble([FromForm] InmuebleCrearFormDTO formDto)
         {
@@ -89,7 +89,8 @@ namespace InmobiliariaAPI.Controllers
 
         // GET: api/inmuebles  -> devuelve todos los inmuebles 
         [HttpGet]
-        [Authorize(Roles = "ADMINISTRADOR")]
+        //[Authorize(Roles = "ADMINISTRADOR")]
+        [Authorize(Policy = "Administrador")]
         public async Task<IActionResult> GetAllInmuebles()
         {
             var inmuebles = await _inmuebleService.GetAllAsync();
@@ -98,7 +99,7 @@ namespace InmobiliariaAPI.Controllers
 
         // GET: api/inmuebles/propios  -> devuelve solo los inmuebles del propietario autenticado
         [HttpGet("propios")]
-        [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
+        [Authorize(Policy = "PropietarioOrAdmin")]
         public async Task<IActionResult> GetAllInmueblesUsuario()
         {
             var personaId = User.GetPersonaId();
@@ -111,7 +112,7 @@ namespace InmobiliariaAPI.Controllers
 
         // GET: api/inmuebles/{id}
         [HttpGet("{id:int}")]
-        [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
+        [Authorize(Policy = "PropietarioOrAdmin")]
         public async Task<IActionResult> GetInmueblePorId(int id)
         {
             var personaId = User.GetPersonaId();
@@ -124,7 +125,7 @@ namespace InmobiliariaAPI.Controllers
 
         // PUT: api/inmuebles/{id}
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
+        [Authorize(Policy = "PropietarioOrAdmin")]
         public async Task<IActionResult> ActualizarInmueble(int id, [FromBody] InmuebleActualizarDTO inmuebleActualizarDTO)
         {
             // Validación con FluentValidation
@@ -148,7 +149,7 @@ namespace InmobiliariaAPI.Controllers
 
         // DELETE: api/inmuebles/{id} -> desactivar
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
+        [Authorize(Policy = "PropietarioOrAdmin")]
         public async Task<IActionResult> EliminarInmueble(int id)
         {
             var personaId = User.GetPersonaId();
@@ -161,7 +162,7 @@ namespace InmobiliariaAPI.Controllers
 
         // PUT: api/inmuebles/habilitar/{id}
         [HttpPut("habilitar/{id:int}")]
-        [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
+        [Authorize(Policy = "PropietarioOrAdmin")]
         public async Task<IActionResult> HabilitarInmueble(int id)
         {
             var personaId = User.GetPersonaId();
@@ -174,7 +175,7 @@ namespace InmobiliariaAPI.Controllers
 
         // GET: api/inmuebles/existe/{id}
         [HttpGet("existe/{id:int}")]
-        [Authorize(Roles = "PROPIETARIO,ADMINISTRADOR")]
+        [Authorize(Policy = "PropietarioOrAdmin")]
         public async Task<IActionResult> ExisteInmueble(int id)
         {
             var personaId = User.GetPersonaId();

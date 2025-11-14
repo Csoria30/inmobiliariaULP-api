@@ -31,7 +31,7 @@ namespace InmobiliariaAPI.Controllers
 
         // POST: api/roles
         [HttpPost]
-        [Authorize(Roles = "ADMINISTRADOR")]
+        [Authorize(Policy = "Administrador")]
         public async Task<IActionResult> CrearRol([FromBody] RoleCrearDTO dto)
         {
             var validation = await _roleCrearValidator.ValidateAsync(dto);
@@ -50,7 +50,7 @@ namespace InmobiliariaAPI.Controllers
 
         // GET: api/roles
         [HttpGet]
-        [Authorize(Roles = "ADMINISTRADOR")]
+        [Authorize(Policy = "Administrador")]
         public async Task<IActionResult> GetAllRoles()
         {
             var roles = await _roleService.GetAllAsync();
@@ -59,7 +59,7 @@ namespace InmobiliariaAPI.Controllers
 
         // GET: api/roles/{id}
         [HttpGet("{id:int}")]
-        [Authorize(Roles = "ADMINISTRADOR")]
+        [Authorize(Policy = "Administrador")]
         public async Task<IActionResult> GetRolPorId(int id)
         {
             var role = await _roleService.GetByIdAsync(id);
@@ -69,7 +69,7 @@ namespace InmobiliariaAPI.Controllers
 
         // PUT: api/roles/{id}
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "ADMINISTRADOR")]
+        [Authorize(Policy = "Administrador")]
         public async Task<IActionResult> ActualizarRol(int id, [FromBody] RoleActualizarDTO dto)
         {
             var validation = await _roleActualizarValidator.ValidateAsync(dto);
@@ -92,7 +92,7 @@ namespace InmobiliariaAPI.Controllers
 
         // DELETE: api/roles/{id}
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "ADMINISTRADOR")]
+        [Authorize(Policy = "Administrador")]
         public async Task<IActionResult> EliminarRol(int id)
         {
             try
@@ -109,7 +109,7 @@ namespace InmobiliariaAPI.Controllers
 
         // GET: api/roles/existe/{id}
         [HttpGet("existe/{id:int}")]
-        [Authorize(Roles = "ADMINISTRADOR")]
+        [Authorize(Policy = "Administrador")]
         public async Task<IActionResult> ExisteRol(int id)
         {
             var existe = await _roleService.ExistsAsync(id);
@@ -119,7 +119,7 @@ namespace InmobiliariaAPI.Controllers
 
         // POST: api/roles/asignar
         [HttpPost("asignar")]
-        [Authorize(Roles = "ADMINISTRADOR")]
+        [Authorize(Policy = "Administrador")]
         public async Task<IActionResult> AsignarRol([FromBody] PersonaRoleAsignarDTO dto)
         {
             // FluentValidation

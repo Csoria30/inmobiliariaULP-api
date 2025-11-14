@@ -37,7 +37,7 @@ namespace InmobiliariaAPI.Controllers
 
         // POST: api/contratos
         [HttpPost]
-        [Authorize(Roles = "EMPLEADO,ADMINISTRADOR")]
+        [Authorize(Policy = "PropietarioOrAdmin")]
         public async Task<IActionResult> CrearContrato([FromBody] ContratoCrearDTO dto)
         {
             // FluentValidation

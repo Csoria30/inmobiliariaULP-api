@@ -27,6 +27,7 @@ namespace InmobiliariaAPI.Controllers
         }
 
         [HttpPost("register")]
+        [Authorize(Policy = "Administrador")]
         public async Task<IActionResult> Register([FromBody] UsuarioCrearDTO dto)
         {
             var creado = await _usuarioService.CreateAsync(dto);

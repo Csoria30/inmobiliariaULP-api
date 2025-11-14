@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using InmobiliariaAPI.Data;
+using InmobiliariaAPI.Helpers;
 using InmobiliariaAPI.InmobiliariaMappers;
 using InmobiliariaAPI.Mappers;
 using InmobiliariaAPI.Models;
@@ -129,9 +130,12 @@ if (!string.IsNullOrEmpty(jwtKey))
 // Autorización: política por roles (Administrador y Propietario)
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Administrador", policy => policy.RequireRole("Administrador"));
-    options.AddPolicy("Propietario", policy => policy.RequireRole("Propietario"));
-    
+    options.AddPolicy("Administrador", policy => policy.RequireRole(RoleNames.Administrador));
+    options.AddPolicy("Propietario", policy => policy.RequireRole(RoleNames.Propietario));
+
+    options.AddPolicy("PropietarioOrAdmin", policy =>
+        policy.RequireRole(RoleNames.Propietario, RoleNames.Administrador));
+
     // Fallback: exigir autenticación por defecto
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
