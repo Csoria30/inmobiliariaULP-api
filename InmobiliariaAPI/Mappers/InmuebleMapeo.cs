@@ -107,5 +107,12 @@ namespace InmobiliariaAPI.Mappers
             };
         }
 
+        public Inmueble MapToEntidadDesdeActualizarAndReturn(InmuebleActualizarDTO dto, Inmueble entidad)
+        {
+            // Reutiliza el mapper existente que muta la entidad
+            MapToEntidadDesdeActualizar(dto, entidad);
+            return entidad;
+        }
+
     }
 }

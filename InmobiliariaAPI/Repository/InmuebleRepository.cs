@@ -21,6 +21,14 @@ namespace InmobiliariaAPI.Repository
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<ICollection<Inmueble>> GetActiveAsync()
+        {
+            return await _dataContext.Inmuebles
+                .AsNoTracking()
+                .Where(i => i.Estado)
+                .ToListAsync();
+        }
         public async Task<Inmueble> GetByIdAsync(int id)
         {
             return await _dataContext.Inmuebles
@@ -75,10 +83,35 @@ namespace InmobiliariaAPI.Repository
             await _dataContext.SaveChangesAsync();
         }
 
-        
-
-
 
         //Metodos Adicionales
+        public async Task<bool> TipoExistsAsync(int tipoId)
+        {
+            return await _dataContext.TipoInmuebles
+                .AsNoTracking()
+                .AnyAsync(t => t.TipoId == tipoId);
+        }
+
+        public async Task<bool> DireccionExistsAsync(string direccion)
+        {
+            return await _dataContext.Inmuebles
+                .AsNoTracking()
+                .AnyAsync(i => i.Direccion == direccion && i.Estado);
+        }
+
+        public async Task<bool> DireccionExistsExcludingIdAsync(string direccion, int excludeInmuebleId)
+        {
+            return await _dataContext.Inmuebles
+                .AsNoTracking()
+                .AnyAsync(i => i.Direccion == direccion && i.InmuebleId != excludeInmuebleId && i.Estado);
+        }
+
+        public async Task<ICollection<Inmueble>> GetByPropietarioAsync(int propietarioId)
+        {
+            return await _dataContext.Inmuebles
+                .AsNoTracking()
+                .Where(i => i.PropietarioId == propietarioId )
+                .ToListAsync();
+        }
     }
 }

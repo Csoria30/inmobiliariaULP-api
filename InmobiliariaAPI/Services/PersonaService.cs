@@ -248,6 +248,34 @@ namespace InmobiliariaAPI.Repository
                 .ToArray()!;
         }
 
+        // Comprobar si persona tiene rol dado
+        public async Task<bool> HasRoleAsync(int personaId, string roleName)
+        {
+            if (personaId <= 0 || string.IsNullOrWhiteSpace(roleName)) return false;
+
+            var personaRoles = await _personaRepository.GetActiveRolesAsync(personaId);
+            if (personaRoles == null || personaRoles.Count == 0) return false;
+
+            return personaRoles.Any(pr =>
+                pr.Estado
+                && pr.Role != null
+                && string.Equals(pr.Role.Nombre, roleName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Comprobar cualquiera de varios roles
+        public async Task<bool> HasAnyRoleAsync(int personaId, params string[] roleNames)
+        {
+            if (personaId <= 0 || roleNames == null || roleNames.Length == 0) return false;
+
+            var personaRoles = await _personaRepository.GetActiveRolesAsync(personaId);
+            if (personaRoles == null || personaRoles.Count == 0) return false;
+
+            var set = new HashSet<string>(roleNames.Where(r => !string.IsNullOrWhiteSpace(r)).Select(r => r.Trim()), StringComparer.OrdinalIgnoreCase);
+
+            return personaRoles.Any(pr =>
+                pr.Estado && pr.Role != null && set.Contains(pr.Role.Nombre?.Trim() ?? string.Empty));
+        }
+
 
     }
 }

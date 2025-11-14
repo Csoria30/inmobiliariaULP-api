@@ -31,7 +31,7 @@ namespace InmobiliariaAPI.Controllers
         {
             var creado = await _usuarioService.CreateAsync(dto);
             var location = $"/api/usuarios/{creado.UsuarioId}";
-            return ApiCreated(location, creado); // Devolver 201 
+            return ApiCreated(location, creado); 
         }
     }
 }
