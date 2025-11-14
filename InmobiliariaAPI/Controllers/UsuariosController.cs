@@ -6,13 +6,14 @@ using InmobiliariaAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace InmobiliariaAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class UsuariosController : ControllerBase
+    public class UsuariosController : ApiControllerBase
     {
         private readonly IUsuarioService _usuarioService;
         private readonly IPersonaService _personaService;
@@ -44,72 +45,67 @@ namespace InmobiliariaAPI.Controllers
         public async Task<IActionResult> miPerfil()
         {
             var personaId = User.GetPersonaId();
-            if (personaId == null) return Unauthorized();
-
             var persona = await _personaService.GetByIdAsync(personaId.Value);
             var usuario = await _usuarioService.GetByPersonaIdAsync(personaId.Value);
 
-            return Ok(new { persona, usuario });
+            return ApiOk(new { persona, usuario });
         }
 
         // PUT: /api/usuarios/miPerfil  
         [HttpPut("miPerfil")]
         public async Task<IActionResult> ActualizarPerfil([FromBody] PersonaActualizarDTO dto)
         {
+            ValidationResult validationResult = await _personaActualizarValidator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+            {
+                var messages = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+                return ApiError(HttpStatusCode.BadRequest, "Validación inválida", messages);
+            }
+
             var personaId = User.GetPersonaId();
-            if (personaId == null) return Unauthorized();
 
-            ValidationResult vr = await _personaActualizarValidator.ValidateAsync(dto);
-            if (!vr.IsValid) return BadRequest(vr.Errors);
-
-            // No aceptar personaId del body: forzar el claim
             var actualizado = await _personaService.UpdateAsync(personaId.Value, dto);
-            if (actualizado == null) return NotFound();
-            return Ok(actualizado);
+            return ApiOk(actualizado);
         }
 
         // PUT: /api/usuarios/miPerfil/password
         [HttpPut("miPerfil/password")]
         public async Task<IActionResult> ChangePassword([FromBody] CambiarPasswordDTO dto)
         {
+            ValidationResult validationResult = await _passwordValidator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+            {
+                var messages = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+                return ApiError(HttpStatusCode.BadRequest, "Validación inválida", messages);
+            }
+
             var personaId = User.GetPersonaId();
-            if (personaId == null) return Unauthorized();
-
-            ValidationResult vr = await _passwordValidator.ValidateAsync(dto);
-            if (!vr.IsValid) return BadRequest(vr.Errors);
-
             var resultado = await _usuarioService.ChangePasswordAsync(personaId.Value, dto.CurrentPassword, dto.NewPassword);
-            if (!resultado) return BadRequest(new { error = "Contraseña actual inválida o usuario no encontrado." });
-
-            return Ok(new { message = "Contraseña actualizada." });
+            return ApiOk(new { message = "Contraseña actualizada." });
         }
 
         // PATCH: /api/usuarios/miPerfil/avatar  (multipart/form-data) 
         [HttpPatch("miPerfil/avatar")]
         public async Task<IActionResult> ActualizarAvatar([FromForm] AvatarUploadDTO dto)
         {
-            // Obtener el personaId del token JWT (claim "personaId")
+            ValidationResult validationResult = await _avatarValidator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+            {
+                var messages = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+                return ApiError(HttpStatusCode.BadRequest, "Validación inválida", messages);
+            }
+
             var personaId = User.GetPersonaId();
-            if (personaId == null) return Unauthorized();
 
-            // FluentValidation
-            ValidationResult resultado = await _avatarValidator.ValidateAsync(dto);
-            if (!resultado.IsValid) return BadRequest(resultado.Errors);
-
-            // Extraer el archivo validado del DTO
             var avatar = dto.Avatar;
 
-            // Construir ruta wwwroot/uploads/avatars
-            // _env.WebRootPath apunta a wwwroot
+            // Construir ruta  - _env.WebRootPath apunta a wwwroot
             var uploadsRoot = Path.Combine(_env.WebRootPath ?? "wwwroot", "uploads", "avatars");
             Directory.CreateDirectory(uploadsRoot);
-
-            // Obtener la extensión
-            var ext = Path.GetExtension(avatar.FileName);
-            // Generar un nombre por persona (sobrescribe avatar)
-            var fileName = $"avatar_{personaId.Value}{ext}";
-            // Ruta completa 
-            var filePath = Path.Combine(uploadsRoot, fileName);
+            var ext = Path.GetExtension(avatar.FileName); // Obtener la extensión
+            var fileName = $"avatar_{personaId.Value}{ext}"; // Generar un nombre por persona (sobrescribe avatar)
+            
+            var filePath = Path.Combine(uploadsRoot, fileName); // Ruta completa 
 
             // Crear/abrir archivo 
             using (var stream = System.IO.File.Create(filePath))
@@ -122,7 +118,6 @@ namespace InmobiliariaAPI.Controllers
 
             // Actualizar en la BD el campo Avatar del usuario asociado a personaId
             var usuarioDto = await _usuarioService.UpdateAvatarAsync(personaId.Value, relativeUrl);
-            if (usuarioDto == null) return NotFound();
 
             return Ok(usuarioDto);
         }

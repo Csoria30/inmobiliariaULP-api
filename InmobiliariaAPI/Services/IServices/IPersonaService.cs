@@ -7,5 +7,9 @@ namespace InmobiliariaAPI.Services.IServices
     {
         Task<PersonaObtenerDTO> GetByDniAsync(string dni);
         Task<PersonaObtenerDTO> GetByEmailAsync(string email);
+        Task<PersonaObtenerDTO> GetByIdWithRolesAsync(int id);
+        Task<bool> HasValidRoleForUserAsync(int personaId);
+        Task<PersonaObtenerDTO> GetByEmailWithRolesAsync(string email);
+        Task<string[]> GetActiveRoleNamesAsync(int personaId);
     }
 }

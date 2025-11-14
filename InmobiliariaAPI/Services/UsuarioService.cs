@@ -1,4 +1,5 @@
 ﻿using InmobiliariaAPI.Data;
+using InmobiliariaAPI.Exceptions;
 using InmobiliariaAPI.Models;
 using InmobiliariaAPI.Models.DTO;
 using InmobiliariaAPI.Repository.IRepository;
@@ -16,50 +17,46 @@ namespace InmobiliariaAPI.Services
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly DataContext _dataContext;
         private readonly IConfiguration _config;
+        private readonly IPersonaService _personaService;
 
-        public UsuarioService(IUsuarioRepository usuarioRepository, DataContext dataContext, IConfiguration config)
+        public UsuarioService(
+            IUsuarioRepository usuarioRepository, 
+            IPersonaService personaService,
+            DataContext dataContext, 
+            IConfiguration config
+            )
         {
             _usuarioRepository = usuarioRepository;
             _dataContext = dataContext;
             _config = config;
+            _personaService = personaService;
         }
 
 
         public async Task<UsuarioObtenerDTO> CreateAsync(UsuarioCrearDTO dto)
         {
-            if (dto == null) throw new ArgumentNullException(nameof(dto));
+            if (dto == null) 
+                throw new ArgumentNullException(nameof(dto));
 
-            // Verificar que la persona exista y esté activa, recuperando sus roles
-            var persona = await _dataContext.Personas
-                .Include(p => p.PersonaRoles).ThenInclude(pr => pr.Role)
-                .FirstOrDefaultAsync(p => p.PersonaId == dto.PersonaId && p.Estado);
+            // Verificar que la persona exista y este activa
+            var personaDto = await _personaService.GetByIdWithRolesAsync(dto.PersonaId);
+            if (personaDto == null)
+                throw new NotFoundException($"La persona {dto.PersonaId} no existe o está inactiva.");
 
-            if (persona == null)
-                throw new InvalidOperationException($"La persona {dto.PersonaId} no existe o está inactiva.");
 
-            // Comprobar que la persona tiene el rol 'Empleado' con id = 2 y que la relación está activa
-            var tieneRolValido = persona.PersonaRoles?
-                .Any(pr => pr.Estado
-                           && pr.Role != null
-                           && (string.Equals(pr.Role.Nombre, "EMPLEADO", StringComparison.OrdinalIgnoreCase)
-                               || string.Equals(pr.Role.Nombre, "PROPIETARIO", StringComparison.OrdinalIgnoreCase)
-                               ))
-                == true;
-
+            // Comprobar que el rol asignado sea 'Empleado' o 'Propietario'
+            var tieneRolValido = await _personaService.HasValidRoleForUserAsync(dto.PersonaId);
             if (!tieneRolValido)
-                throw new InvalidOperationException("La persona seleccionada no tiene rol válido para registrarse.");
-
+                throw new NotFoundException("La persona seleccionada no tiene rol válido para registrarse.");
 
             // Verificar que el empleado no este regitrado
             var existente = await _usuarioRepository.GetByPersonaIdAsync(dto.PersonaId);
             if (existente != null)
-                throw new InvalidOperationException($"Ya existe un usuario para la persona {dto.PersonaId}.");
-
+                throw new NotFoundException($"Ya existe un usuario para la persona {dto.PersonaId}.");                
 
             // Validar password no este vacio, ademas de FluetValidation
             if (string.IsNullOrWhiteSpace(dto.Password))
                 throw new InvalidOperationException("Password obligatorio.");
-
 
             // Hashear password
             var hashed = BCrypt.Net.BCrypt.HashPassword(dto.Password);
@@ -83,39 +80,30 @@ namespace InmobiliariaAPI.Services
 
         public async Task<AuthResponseDTO> AuthenticateAsync(UsuarioLoginDTO dto)
         {
-            if (dto == null) throw new ArgumentNullException(nameof(dto));
+            
+            var personaDto = await _personaService.GetByEmailWithRolesAsync(dto.Email);
+            if (personaDto == null)
+                throw new NotFoundException($"Credenciales invalidas");
 
-            // Buscar usuario que coincida con el email y este activo, incluyendo Persona y sus Roles
-            var usuario = await _dataContext.Usuarios
-                .Include(u => u.Persona)
-                    .ThenInclude(p => p.PersonaRoles)
-                        .ThenInclude(pr => pr.Role)
-                .AsNoTracking() // Lectura: no necesitamos seguimiento de cambios
-                .FirstOrDefaultAsync(u => u.Persona.Email == dto.Email && u.Persona.Estado);
-
-            if (usuario == null)
-                throw new InvalidOperationException("Credenciales inválidas.");
+            //Recuperamos el usuario asociado a la persona y Contraseña Hasheada
+            var usuario = await _usuarioRepository.GetByPersonaIdIncludingPersonaAsync(personaDto.PersonaId);
 
             // Si el password almacenado es null, no intentar Verify
             if (string.IsNullOrEmpty(usuario.Password) || !BCrypt.Net.BCrypt.Verify(dto.Password, usuario.Password))
-                throw new InvalidOperationException("Credenciales inválidas.");
+                throw new NotFoundException("Credenciales inválidas.");
 
             // Verificar que la contraseña enviada coincide con el hash almacenado
             var matches = BCrypt.Net.BCrypt.Verify(dto.Password, usuario.Password);
-            if (!matches) throw new InvalidOperationException("Credenciales inválidas.");
+            if (!matches) 
+                throw new NotFoundException("Credenciales inválidas.");
 
             // Obtiene roles activos, sino tiene roles, retorna array vacio
-            var roles = usuario.Persona.PersonaRoles?
-                .Where(pr => pr.Estado && pr.Role != null) 
-                .Select(pr => pr.Role.Nombre)              
-                .ToArray() ?? Array.Empty<string>();
+            var roles = await _personaService.GetActiveRoleNamesAsync(personaDto.PersonaId);
 
-            
             // Generar JWT reutilizando el método BuildToken 
             var tokenString = BuildToken(usuario.UsuarioId, usuario.Persona.PersonaId, roles);
 
-            // Calcular fecha de expiración para devolver en la respuesta
-            //var expiresMinutes = int.Parse(_config["Jwt:ExpiresMinutes"] ?? "60");
+            // Caduca en 24hs
             var expiresAt = DateTime.UtcNow.AddHours(24);
 
             // Devolver DTO de autenticación con token
@@ -132,7 +120,9 @@ namespace InmobiliariaAPI.Services
         public async Task<UsuarioObtenerDTO> GetByPersonaIdAsync(int personaId)
         {
             var usuario = await _usuarioRepository.GetByPersonaIdIncludingPersonaAsync(personaId);
-            if (usuario == null) return null;
+            if (usuario == null)
+                throw new NotFoundException("Usuario no existe");
+
             return new UsuarioObtenerDTO
             {
                 UsuarioId = usuario.UsuarioId,
@@ -144,7 +134,9 @@ namespace InmobiliariaAPI.Services
         public async Task<UsuarioObtenerDTO> GetByIdAsync(int id)
         {
             var usuario = await _usuarioRepository.GetByIdAsync(id);
-            if (usuario == null) return null;
+            if (usuario == null)
+                throw new NotFoundException("Usuario no existe");
+
             return new UsuarioObtenerDTO
             {
                 UsuarioId = usuario.UsuarioId,
@@ -156,7 +148,7 @@ namespace InmobiliariaAPI.Services
         private string BuildToken(int usuarioId, int personaId, string[] roles)
         {
             // Leer la clave secreta desde configuración, lanzar si no está configurada.
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key no configurada")));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"] ?? throw new NotFoundException("Jwt:Key no configurada")));
 
             // Crear credenciales de firma utilizando HMAC-SHA256
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -164,8 +156,8 @@ namespace InmobiliariaAPI.Services
             // Construir la lista inicial de claims
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, usuarioId.ToString()), // 'sub' (subject) estándar: identificador del usuario
-                new Claim("personaId", personaId.ToString()) // Claim: Id Persona
+                new Claim(JwtRegisteredClaimNames.Sub, usuarioId.ToString()), // 
+                new Claim("personaId", personaId.ToString()) // IDPersona
             };
 
 
@@ -189,15 +181,16 @@ namespace InmobiliariaAPI.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        // Cambia pass identificado por personaId
+        
         public async Task<bool> ChangePasswordAsync(int personaId, string currentPassword, string newPassword)
         {
             var usuario = await _usuarioRepository.GetByPersonaIdIncludingPersonaAsync(personaId);
-            if (usuario == null) return false;
+            if (usuario == null)
+                throw new NotFoundException("Usuario no existe");
 
             // pass actual
             if (string.IsNullOrEmpty(usuario.Password) || !BCrypt.Net.BCrypt.Verify(currentPassword, usuario.Password))
-                return false;
+                throw new NotFoundException("Contraseña inválida.");
 
             // hashear y guardar nueva pass
             usuario.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
@@ -205,11 +198,12 @@ namespace InmobiliariaAPI.Services
             return true;
         }
 
-        // Actualiza solo la URL/avatar del usuario asociado a personaId
+        // Actualiza Solo IRL
         public async Task<UsuarioObtenerDTO> UpdateAvatarAsync(int personaId, string avatarUrl)
         {
             var usuario = await _usuarioRepository.GetByPersonaIdIncludingPersonaAsync(personaId);
-            if (usuario == null) return null;
+            if (usuario == null) 
+                throw new NotFoundException("Usuario no existe");
 
             usuario.Avatar = avatarUrl;
             var actualizado = await _usuarioRepository.UpdateAsync(usuario.UsuarioId, usuario);

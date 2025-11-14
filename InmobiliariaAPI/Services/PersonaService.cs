@@ -32,7 +32,7 @@ namespace InmobiliariaAPI.Repository
             _dataContext = dataContext;
         }
 
-        // Metodos Base
+        // Metodos Base - Persona
         public async Task<PersonaObtenerDTO> CreateAsync(PersonaCrearDTO entity)
         {
             // Validaciones
@@ -149,12 +149,12 @@ namespace InmobiliariaAPI.Repository
             return _personaMapeo.MapToObtenerDTO(personaActualizada);
         }
 
-        
+
         // Metodos Extras
         public async Task<PersonaObtenerDTO> GetByDniAsync(string dni)
         {
             var persona = await _personaRepository.GetByDniAsync(dni);
-            if(persona == null)
+            if (persona == null)
                 throw new NotFoundException($"La persona con DNI {dni} no existe.");
 
             return _personaMapeo.MapToObtenerDTO(persona);
@@ -164,9 +164,88 @@ namespace InmobiliariaAPI.Repository
         {
             var persona = await _personaRepository.GetByEmailAsync(email);
             if (persona == null)
-                throw new NotFoundException($"La persona con DNI {email} no existe.");
+                throw new NotFoundException($"La persona con EMAIL {email} no existe.");
 
             return _personaMapeo.MapToObtenerDTO(persona);
+        }
+
+        public async Task<PersonaObtenerDTO> GetByIdWithRolesAsync(int id)
+        {
+            var persona = await _personaRepository.GetByIdAsync(id);
+            if (persona == null || !persona.Estado)
+                throw new NotFoundException($"La persona con ID {id} no existe o no esta habilitada.");
+
+            var dto = _personaMapeo.MapToObtenerDTO(persona);
+
+            // Aseguramos que Roles en el DTO estén poblados con roles activos
+            dto.Roles = persona.PersonaRoles?
+                .Where(pr => pr.Estado && pr.Role != null)
+                .Select(pr => new RoleObtenerDTO
+                {
+                    RolId = pr.RolId,
+                    Nombre = pr.Role?.Nombre,
+                    Descripcion = pr.Role?.Descripcion
+                })
+                .ToList() ?? new List<RoleObtenerDTO>();
+
+            return dto;
+        }
+
+        public async Task<bool> HasValidRoleForUserAsync(int personaId)
+        {
+            var roles = await _personaRepository.GetActiveRolesAsync(personaId);
+            if (roles == null || roles.Count == 0)
+                throw new NotFoundException($"No tiene roles asignados");
+
+
+            return roles.Any(pr =>
+                pr.Estado
+                && pr.Role != null
+                && (string.Equals(pr.Role.Nombre, "EMPLEADO", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(pr.Role.Nombre, "PROPIETARIO", StringComparison.OrdinalIgnoreCase)));
+        }
+
+        public async Task<PersonaObtenerDTO> GetByEmailWithRolesAsync(string email)
+        {
+            var usuario = await _dataContext.Usuarios
+                .Include(u => u.Persona)
+                    .ThenInclude(p => p.PersonaRoles)
+                        .ThenInclude(pr => pr.Role)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Persona.Email == email && u.Persona.Estado);
+
+            if (usuario == null || usuario.Persona == null)
+                throw new NotFoundException($"El usuario no existe.");
+
+            var persona = usuario.Persona;
+            var dto = _personaMapeo.MapToObtenerDTO(persona);
+
+            dto.Roles = persona.PersonaRoles?
+                .Where(pr => pr.Estado && pr.Role != null)
+                .Select(pr => new RoleObtenerDTO
+                {
+                    RolId = pr.RolId,
+                    Nombre = pr.Role?.Nombre,
+                    Descripcion = pr.Role?.Descripcion
+                })
+                .ToList() ?? new List<RoleObtenerDTO>();
+
+            return dto;
+
+        }
+
+        public async Task<string[]> GetActiveRoleNamesAsync(int personaId)
+        {
+            if (personaId <= 0) return Array.Empty<string>();
+
+            var personaRoles = await _personaRepository.GetActiveRolesAsync(personaId);
+            if (personaRoles == null || personaRoles.Count == 0) return Array.Empty<string>();
+
+            return personaRoles
+                .Where(pr => pr.Estado && pr.Role != null)
+                .Select(pr => pr.Role!.Nombre?.Trim())
+                .Where(name => !string.IsNullOrEmpty(name))
+                .ToArray()!;
         }
 
 
