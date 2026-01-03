@@ -2,6 +2,7 @@
 using InmobiliariaAPI.Exceptions;
 using InmobiliariaAPI.Models;
 using InmobiliariaAPI.Models.DTO;
+using InmobiliariaDTO;
 using InmobiliariaAPI.Repository.IRepository;
 using InmobiliariaAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;

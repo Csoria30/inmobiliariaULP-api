@@ -1,0 +1,60 @@
+﻿/* ================================
+   VARIABLES DE COLOR Y SISTEMA REM - ESQUEMA VERDE
+   ================================ */
+:root {
+    --bs-primary: #198754; /* Verde principal (branding, botones, navbar) */
+    --bs-primary-rgb: 25,135,84; /* RGB del verde principal */
+
+    --bs-secondary: #20c997; /* Verde secundario (hover, detalles) */
+    --bs-secondary-rgb: 32,201,151; /* RGB del secundario */
+
+    --bs-success: #198754; /* Verde éxito (mensajes, validaciones) */
+    --bs-success-rgb: 25,135,84; /* RGB del verde éxito */
+
+    --bs-info: #20c997; /* Verde claro info (avisos, badges) */
+    --bs-info-rgb: 32,201,151; /* RGB del info */
+
+    --bs-warning: #ffc107; /* Amarillo advertencia (alertas, warnings) */
+    --bs-warning-rgb: 255,193,7; /* RGB del warning */
+
+    --bs-danger: #dc3545; /* Rojo error (errores, alertas) */
+    --bs-danger-rgb: 220,53,69; /* RGB del danger */
+
+    --bs-light: #f8f9fa; /* Fondo claro general (backgrounds, tarjetas) */
+    --bs-light-rgb: 248,249,250; /* RGB del light */
+
+    --bs-dark: #212529; /* Fondo oscuro general (textos, backgrounds) */
+    --bs-dark-rgb: 33,37,41; /* RGB del dark */
+
+    --bs-dark-btn: #198754; /* Botón verde principal */
+    --bs-dark2-btn: #146c43; /* Botón verde secundario */
+    --bs-dark-btn-hover: #20c997; /* Hover botón verde */
+
+    --sidebar-bg: #f8f9fa; /* Fondo sidebar (claro) */
+    --sidebar-border: #198754; /* Borde sidebar (verde) */
+    --sidebar-header-bg: #198754; /* Fondo header del sidebar (verde) */
+    --sidebar-header-border: #146c43; /* Borde header del sidebar (verde oscuro) */
+    --sidebar-scroll-track: #e9ecef; /* Track del scroll en sidebar */
+    --sidebar-scroll-thumb: #198754; /* Thumb del scroll en sidebar (verde) */
+    --sidebar-scroll-thumb-hover: #146c43; /* Thumb hover del scroll en sidebar (verde oscuro) */
+
+    --content-bg: #f8f9fa; /* Fondo principal del contenido (claro) */
+    --content-scroll-track: #e9ecef; /* Track del scroll en contenido */
+    --content-scroll-thumb: #198754; /* Thumb del scroll en contenido (verde) */
+    --content-scroll-thumb-hover: #146c43; /* Thumb hover del scroll en contenido (verde oscuro) */
+
+    --accordion-bg: #ffffff; /* Fondo del acordeón (blanco) */
+    --accordion-color: #198754; /* Color de texto del acordeón (verde) */
+    --submenu-hover-bg: #d1e7dd; /* Fondo hover de submenú (verde muy claro) */
+    --accordion-bg-active: #198754; /* Fondo activo del acordeón (verde) */
+    --accordion-color-active: #ffffff; /* Color de texto activo del acordeón (blanco) */
+    --accordion-shadow-active: rgba(25, 135, 84, 0.15); /* Sombra acordeón activo */
+    --accordion-focus-shadow: rgba(25, 135, 84, 0.25); /* Sombra foco acordeón */
+
+    --link-color: #198754; /* Color de links en sidebar (verde) */
+    --link-hover-color: #146c43; /* Color de links hover en sidebar (verde oscuro) */
+    --link-active-bg: #d1e7dd; /* Fondo de link activo en sidebar (verde claro) */
+    --link-active-color: #0a3622; /* Color de link activo en sidebar (verde muy oscuro) */
+    --submenu-active-bg: #d1e7dd; /* Fondo de submenú activo (verde claro) */
+    --submenu-active-border: #198754; /* Borde izquierdo de submenú activo (verde) */
+}

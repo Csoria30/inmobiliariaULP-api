@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace InmobiliariaAPI.Models.DTO
+namespace InmobiliariaDTO
 {
     public class UsuarioLoginDTO
     {

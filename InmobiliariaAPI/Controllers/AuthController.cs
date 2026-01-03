@@ -1,9 +1,11 @@
 ﻿using InmobiliariaAPI.Models.DTO;
+using InmobiliariaDTO;
 using InmobiliariaAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+
 
 namespace InmobiliariaAPI.Controllers
 {

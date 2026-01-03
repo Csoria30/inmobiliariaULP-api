@@ -1,0 +1,101 @@
+﻿/* ==============================
+   !FORMULARIOS - Esquema Verde
+   ============================== */
+.form-control,
+.form-select {
+    font-size: 1.6rem;
+    padding: 0.8rem 1.2rem;
+}
+
+.modal-title i {
+    font-size: 2.4rem; /* un poco más grande que el texto */
+    vertical-align: middle; /* lo centra verticalmente */
+}
+
+.form-floating > .form-control::placeholder {
+    color: var(--bs-secondary);
+    text-align: end;
+    font-size: 1.4rem; /* un poco más chico */
+}
+
+.form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+/* Focus accesible - Esquema Verde */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem var(--bs-light), 0 0 0 0.25rem var(--bs-success);
+}
+
+.card-header-dark2 {
+    background-color: var(--bs-success) !important;
+    color: #fff !important;
+}
+
+/* Estilos adicionales para formularios verdes */
+.form-control:focus {
+    border-color: var(--bs-success);
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+.form-select:focus {
+    border-color: var(--bs-success);
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+/* Validación de formularios - Esquema Verde */
+.was-validated .form-control:valid,
+.form-control.is-valid {
+    border-color: var(--bs-success);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='%23198754' d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.061L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z'/%3e%3c/svg%3e");
+}
+
+    .was-validated .form-control:valid:focus,
+    .form-control.is-valid:focus {
+        border-color: var(--bs-success);
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+    }
+
+/* Checkboxes y radios verdes */
+.form-check-input:checked {
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
+}
+
+.form-check-input:focus {
+    border-color: #86cfac;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+/* Labels destacados */
+.form-label {
+    color: var(--bs-dark);
+    font-weight: 500;
+}
+
+    .form-label.text-success {
+        color: var(--bs-success) !important;
+        font-weight: 600;
+    }
+
+/* Modal headers verdes */
+.modal-header {
+    background-color: var(--bs-success);
+    color: white;
+    border-bottom: 1px solid #146c43;
+}
+
+    .modal-header .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+/* Cards con header verde */
+.card-header.bg-success {
+    background-color: var(--bs-success) !important;
+    border-bottom: 1px solid #146c43;
+}

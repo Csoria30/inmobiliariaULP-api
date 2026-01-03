@@ -1,0 +1,164 @@
+﻿/* ================================
+   ESTILOS DE LOGIN - Esquema Verde
+   ================================ */
+
+/* Fondo con gradiente verde */
+body {
+    background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Card principal del login */
+.login-card {
+    background: #fff;
+    border-radius: 1.2rem;
+    box-shadow: 0 8px 40px rgba(25, 135, 84, 0.15);
+    border: 1px solid rgba(25, 135, 84, 0.1);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 400px;
+    transition: transform 0.2s ease-in-out;
+}
+
+    .login-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 48px rgba(25, 135, 84, 0.2);
+    }
+
+/* Logo y branding */
+.login-logo {
+    font-size: 3rem;
+    color: #198754;
+    margin-bottom: 1rem;
+    transition: color 0.3s ease;
+}
+
+.brand-container {
+    background: linear-gradient(135deg, #198754, #20c997);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+/* Títulos y texto */
+h4 {
+    color: #198754;
+    margin-bottom: 0.5rem;
+}
+
+.text-muted {
+    color: #6c757d !important;
+    font-size: 0.9rem;
+}
+
+/* Formularios */
+.form-control {
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease-in-out;
+}
+
+    .form-control:hover {
+        border-color: #20c997;
+    }
+
+    .form-control:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+        outline: 0;
+    }
+
+.form-label {
+    font-weight: 500;
+    color: #198754;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* Botones */
+.btn-primary {
+    background-color: #198754;
+    border-color: #146c43;
+    font-size: 1.1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+    .btn-primary:hover {
+        background-color: #20c997;
+        border-color: #198754;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+/* Alertas */
+.alert-danger {
+    border-color: #dc3545;
+    background-color: #f8d7da;
+    color: #721c24;
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+}
+
+/* Footer de seguridad */
+.security-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+    .security-footer small {
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+
+/* Iconos */
+.bi {
+    vertical-align: -0.125em;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .login-card {
+        margin: 1rem;
+        padding: 2rem 1.5rem;
+    }
+
+    .login-logo {
+        font-size: 2.5rem;
+    }
+
+    .brand-container {
+        font-size: 1.4rem;
+    }
+}

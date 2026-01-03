@@ -1,49 +1,279 @@
-﻿<!DOCTYPE html>
+﻿﻿
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - InmobiliariaMVC</title>
+    <title>@ViewData["Title"] - inmobiliariaULP</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- DataTables Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+
+    <link rel="stylesheet" href="~/inmobiliariaULP.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/paleta.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/InmobiliariaMVC.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/botones.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/formularios.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/datatable.css" asp-append-version="true" />
+
 </head>
+
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    @{
+        var tipo = TempData["NotificacionTipo"] as string ?? "primary";
+    }
+    @if (TempData["Notificacion"] != null)
+    {
+        <div aria-live="polite" aria-atomic="true" class="position-fixed end-0 p-3"
+             style="z-index: 1080; top: 70px; right: 10px; min-width: 300px;">
+            <div id="toastNotificacion" class="toast show align-items-center text-bg-@tipo border-0 animate-toast-in"
+                 role="alert">
+                <div class="d-flex">
+                    <div class="toast-body fs-4">
+                        @TempData["Notificacion"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                            aria-label="Cerrar"></button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <header class="main-header">
+        <nav class="navbar navbar-expand-sm navbar-dark sticky-top bg-success shadow-sm">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">InmobiliariaMVC</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <i class="bi bi-house-door-fill text-white me-2"></i>
+                <a class="navbar-brand text-white fw-bold" asp-area="" asp-controller="Home"
+                   asp-action="Index">inmobiliariaULP</a>
+                <button class="navbar-toggler border-white" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
                     </ul>
+
+                    <div class="d-flex align-items-center me-3">
+                        <div class="dropdown">
+                            <a href="#"
+                               class="d-flex align-items-center link-white text-decoration-none dropdown-toggle"
+                               id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="~/images/@(User.FindFirst("Avatar")?.Value ?? "default-avatar.png")"
+                                     alt="Perfil"
+                                     width="36"
+                                     height="36"
+                                     class="rounded-circle object-fit-cover me-2 border border-white border-2">
+                                <span class="d-none d-sm-inline text-white">
+                                    @User.FindFirst("FullName")?.Value
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-success" aria-labelledby="dropdownUser">
+                                <li class="dropdown-item-text bg-light">
+                                    <div class="d-flex align-items-center justify-content-center py-1">
+                                        <i class="bi bi-shield-check me-2 text-success fs-5"></i>
+                                        <span class="fw-bold text-success fs-6">@User.FindFirst("Role")?.Value</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-success"
+                                       asp-area=""
+                                       asp-controller="Perfil"
+                                       asp-action="Perfil">
+                                        <i class="bi bi-person-circle me-2"></i>Editar perfil
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider border-success">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" asp-area="" asp-controller="Auth"
+                                       asp-action="Logout">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+    <main class="flex-fill">
+        <!-- Contenedor principal con scrolls independientes -->
+        <div class="admin-layout-container">
+            <div class="admin-layout-wrapper">
+                <!-- Sidebar con scroll propio -->
+                <aside class="admin-sidebar bg-light border-end border-success shadow-sm">
+                    <div class="admin-sidebar-header bg-success text-white p-3">
+                        <div class="d-flex align-items-center mb-0">
+                            <i class="bi bi-speedometer2 me-2 text-white"></i>
+                            <span class="fw-semibold">Panel de administración</span>
+                        </div>
+                    </div>
+
+                    <div class="admin-sidebar-content p-2">
+                        <div class="accordion accordion-flush" id="adminAccordion">
+                            <!-- Módulo: Usuarios -->
+                            <div class="accordion-item border-success">
+                                <h2 class="accordion-header" id="headingUsers">
+                                    <button class="accordion-button collapsed text-success fw-semibold" type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#collapseUsers"
+                                            aria-expanded="false"
+                                            aria-controls="collapseUsers">
+                                        <i class="bi bi-people me-2 text-success"></i> Usuarios
+                                    </button>
+                                </h2>
+
+                                <div id="collapseUsers" class="accordion-collapse collapse"
+                                     aria-labelledby="headingUsers" data-bs-parent="#adminAccordion">
+                                    <div class="accordion-body p-0">
+                                        <ul class="list-group list-group-flush admin-submenu">
+                                            <li class="list-group-item border-success">
+                                                <a class="nav-link admin-link text-success" asp-area="" asp-controller="Persona"
+                                                   asp-action="Index">
+                                                    <i class="bi bi-person me-2"></i>Lista Personas
+                                                </a>
+                                            </li>
+                                        </ul>
+                                        <ul class="list-group list-group-flush admin-submenu">
+                                            <li class="list-group-item border-success">
+                                                <a class="nav-link admin-link text-success" asp-area="" asp-controller="Inquilino"
+                                                   asp-action="Index">
+                                                    <i class="bi bi-person-badge me-2"></i>Lista Inquilinos
+                                                </a>
+                                            </li>
+                                        </ul>
+                                        <ul class="list-group list-group-flush admin-submenu">
+                                            <li class="list-group-item border-success">
+                                                <a class="nav-link admin-link text-success" asp-area="" asp-controller="Propietario"
+                                                   asp-action="Index">
+                                                    <i class="bi bi-person-check me-2"></i>Lista Propietarios
+                                                </a>
+                                            </li>
+                                        </ul>
+                                        <ul class="list-group list-group-flush admin-submenu">
+                                            <li class="list-group-item border-success">
+                                                <a class="nav-link admin-link text-success" asp-area="" asp-controller="Empleado"
+                                                   asp-action="Index">
+                                                    <i class="bi bi-person-workspace me-2"></i>Lista Empleados
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div><!-- Módulo: Usuarios -->
+                            <!-- Módulo: Propiedades -->
+                            <div class="accordion-item border-success">
+                                <h2 class="accordion-header" id="headingProps">
+                                    <button class="accordion-button collapsed text-success fw-semibold" type="button" data-bs-toggle="collapse"
+                                            data-bs-target="#collapseProps" aria-expanded="false"
+                                            aria-controls="collapseProps">
+                                        <i class="bi bi-house-door me-2 text-success"></i> Propiedades
+                                    </button>
+                                </h2>
+
+                                <div id="collapseProps" class="accordion-collapse collapse"
+                                     aria-labelledby="headingProps" data-bs-parent="#adminAccordion">
+                                    <div class="accordion-body p-0">
+                                        <ul class="list-group list-group-flush admin-submenu">
+                                            <li class="list-group-item border-success">
+                                                <a class="nav-link admin-link text-success" asp-area="" asp-controller="Inmueble"
+                                                   asp-action="Index">
+                                                    <i class="bi bi-building me-2"></i>Lista Inmuebles
+                                                </a>
+                                            </li>
+                                        </ul>
+
+                                        <ul class="list-group list-group-flush admin-submenu">
+                                            <li class="list-group-item border-success">
+                                                <a class="nav-link admin-link text-success" asp-area="" asp-controller="Inmueble"
+                                                   asp-action="BuscarDisponibles">
+                                                    <i class="bi bi-search me-2"></i>Buscar Disponibles
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div><!-- Módulo: Inmuebles -->
+                            <!-- Módulo: Contratos -->
+                            <div class="accordion-item border-success">
+                                <h2 class="accordion-header" id="headingContracts">
+                                    <button class="accordion-button collapsed text-success fw-semibold" type="button" data-bs-toggle="collapse"
+                                            data-bs-target="#collapseContracts" aria-expanded="false"
+                                            aria-controls="collapseContracts">
+                                        <i class="bi bi-file-earmark-text me-2 text-success"></i> Contratos
+                                    </button>
+                                </h2>
+
+                                <div id="collapseContracts" class="accordion-collapse collapse"
+                                     aria-labelledby="headingContracts" data-bs-parent="#adminAccordion">
+                                    <div class="accordion-body p-0">
+                                        <ul class="list-group list-group-flush admin-submenu">
+                                            <li class="list-group-item border-success">
+                                                <a class="nav-link admin-link text-success"
+                                                   asp-area=""
+                                                   asp-controller="Contrato"
+                                                   asp-action="Index">
+                                                    <i class="bi bi-file-text me-2"></i>Lista Contratos
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div><!-- Módulo: Contratos -->
+
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Contenido principal con scroll propio -->
+                <div class="admin-content">
+                    <main role="main" class="admin-main-content">
+                        @RenderBody()
+                    </main>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="contenedor-footer">
+        <footer class="footer text-white bg-success border-top border-success shadow-sm">
+            <div class="container">
+                &copy; 2025 - inmobiliariaULP - <a asp-area="" asp-controller="Home" asp-action="Privacy"
+                                                   class="text-white text-decoration-none">Privacy</a>
+            </div>
+        </footer>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - InmobiliariaMVC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <!-- DataTables Bootstrap 5 JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="~/js/inquilinos-datatable.js"></script>
+    <script src="~/js/inmuebles-datatable.js"></script>
+    <script src="~/js/personas-datatable.js"></script>
+    <script src="~/js/propietarios-datatable.js"></script>
+    <script src="~/js/empleados-datatable.js"></script>
+    <script src="~/js/contratos-datatable.js"></script>
+    <script src="~/js/buscar-inmuebles.js"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>

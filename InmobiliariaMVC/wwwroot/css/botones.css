@@ -1,0 +1,60 @@
+/* ================================
+   !Botones - Esquema Verde
+   ================================ */
+.btn {
+    font-size: 1.3rem; /* Igual que texto base */
+    padding: 0.8rem 1.6rem; /* Botón accesible */
+    border-radius: 0.8rem; /* Borde suavizado UX */
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: var(--bs-dark-btn);
+    border-color: var(--bs-dark2-btn);
+}
+
+    .btn-primary:hover {
+        background-color: var(--bs-dark-btn-hover);
+        border-color: var(--bs-dark-btn-hover);
+    }
+
+/* Estilo de botones del paginador de DataTables */
+.dataTables_paginate .pagination .page-link {
+    font-size: .9rem;
+    padding: 0.8rem 1.6rem;
+    border-radius: 0.8rem;
+    transition: all 0.2s ease-in-out;
+    color: #fff;
+    background-color: var(--bs-dark-btn);
+    border-color: var(--bs-dark2-btn);
+}
+
+    .dataTables_paginate .pagination .page-link:hover,
+    .dataTables_paginate .pagination .page-item.active .page-link {
+        background-color: var(--bs-dark-btn-hover);
+        border-color: var(--bs-dark-btn-hover);
+        color: #fff;
+    }
+
+/* Botones verdes específicos */
+.btn-success {
+    background-color: #198754;
+    border-color: #146c43;
+}
+
+    .btn-success:hover {
+        background-color: #20c997;
+        border-color: #198754;
+    }
+
+.btn-outline-success {
+    color: #198754;
+    border-color: #198754;
+}
+
+    .btn-outline-success:hover {
+        background-color: #198754;
+        border-color: #146c43;
+        color: #fff;
+    }
