@@ -1,4 +1,6 @@
 using InmobiliariaMVC.Handlers;
+using InmobiliariaMVC.Services.Implementations;
+using InmobiliariaMVC.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Headers;
@@ -20,6 +22,11 @@ builder.Services.AddHttpContextAccessor();
 
 // Registrar el TokenHandler que inyecta el Authorization header desde el HttpContext/Session
 builder.Services.AddTransient<TokenHandler>();
+
+//Inyeccion de dependencias - Repositorios y Servicios
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+
 
 // Leer configuración del cliente API (compatibilizar "ApiClient" o "ApiSettings")
 var apiSection = builder.Configuration.GetSection("ApiClient");
