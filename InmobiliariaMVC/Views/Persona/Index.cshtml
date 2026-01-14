@@ -1,0 +1,38 @@
+﻿@model IEnumerable<InmobiliariaDTO.PersonaObtenerDTO>
+
+<h2>Personas</h2>
+
+<p>
+    <a class="btn btn-primary" href="@Url.Action("Create")">Crear persona</a>
+</p>
+
+@if (Model == null || !Model.Any())
+{
+    <p>No hay personas.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>DNI</th>
+                <th>Apellido</th>
+                <th>Nombre</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.PersonaId</td>
+                    <td>@p.Dni</td>
+                    <td>@p.Apellido</td>
+                    <td>@p.Nombre</td>
+                    <td>@p.Email</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
