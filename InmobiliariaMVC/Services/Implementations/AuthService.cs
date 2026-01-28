@@ -24,21 +24,23 @@ namespace InmobiliariaMVC.Services.Implementations
             var client = _httpClientFactory.CreateClient("ApiClient");
             HttpResponseMessage resp;
 
-            // Manejo de excepciones para errores de conexión
+            // 1) Realizar petición a la API y capturar errores de red
             try
             {
                 resp = await client.PostAsJsonAsync("auth/login", model);
             }
             catch (HttpRequestException ex)
             {
+                // Error de conexión (DNS, rechazada, timeout...)
                 return (false, $"Error de conexión con la API: {ex.Message}", Enumerable.Empty<Claim>());
             }
             catch (Exception ex)
             {
+                // Cualquier otro error 
                 return (false, $"Error inesperado: {ex.Message}", Enumerable.Empty<Claim>());
             }
 
-            // Si no es un 200...
+            // 2) Si la API responde con error (4xx/5xx) intentar extraer mensaje útil
             if (!resp.IsSuccessStatusCode)
             {
                 var content = await resp.Content.ReadAsStringAsync();
@@ -58,16 +60,19 @@ namespace InmobiliariaMVC.Services.Implementations
                 }
                 catch
                 {
-                    // ignorar parseo si no corresponde
+                    // Si el body no coincide con ApiResponse, usamos fallback
                 }
 
-                // fallback: mostrar el texto plano o código http
+                // fallback generico: mostrar el texto plano o cod http
                 var shortContent = string.IsNullOrWhiteSpace(content) ? resp.ReasonPhrase ?? resp.StatusCode.ToString() : content;
+                if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    return (false, "Credenciales inválidas.", Enumerable.Empty<Claim>());
+
                 return (false, $"API {(int)resp.StatusCode}: {shortContent}", Enumerable.Empty<Claim>());
 
             }
 
-            // Si es un 200
+            // 3) Si es un 200
             ApiResponse<AuthResponseDTO>? apiResp;
 
             try
@@ -86,10 +91,12 @@ namespace InmobiliariaMVC.Services.Implementations
             if (string.IsNullOrWhiteSpace(token))
                 return (false, "Token vacío recibido desde la API.", Enumerable.Empty<Claim>());
 
-            //Guardar el token en la sesión
+            // 4) Guardar token en Session para que TokenHandler lo use en futuras peticiones.
+
             _httpContextAccessor.HttpContext?.Session.SetString("ApiToken", token);
 
-            // Decodificar JWT y construir claims
+            
+            // 5) Decodificar JWT para obtener claims 
             JwtSecurityToken jwt;
 
             try
@@ -101,14 +108,20 @@ namespace InmobiliariaMVC.Services.Implementations
                 return (false, "Token JWT inválido.", Enumerable.Empty<Claim>());
             }
 
+            // Tomamos las claims que vienen en el JWT
             var claims = jwt.Claims.ToList();
 
-            // Preferir roles desde AuthResponseDTO si vienen
+            // 6) Normalizar roles tal como los entregue la API en AuthResponseDTO
             if (apiResp.Result.Roles != null && apiResp.Result.Roles.Length > 0)
             {
-                claims.RemoveAll(c => c.Type == ClaimTypes.Role || c.Type.EndsWith("role", StringComparison.OrdinalIgnoreCase));
+                claims.RemoveAll( c => string.Equals(
+                    c.Type, ClaimTypes.Role, StringComparison.OrdinalIgnoreCase) || 
+                    c.Type.EndsWith("role", StringComparison.OrdinalIgnoreCase)
+                );
+
                 foreach (var r in apiResp.Result.Roles.Where(r => !string.IsNullOrWhiteSpace(r)))
-                    claims.Add(new Claim(ClaimTypes.Role, r.Trim()));
+                    claims.Add(new Claim(ClaimTypes.Role, r.Trim().ToUpperInvariant())
+                );
             }
             else
             {
@@ -122,13 +135,14 @@ namespace InmobiliariaMVC.Services.Implementations
                     claims.Add(new Claim(ClaimTypes.Role, rc.Value));
             }
 
-            // Asegurar identificadores básicos
+            // 7) Asegurar identificadores básicos (NameIdentifier y Email) usando AuthResponseDTO si faltan
             if (!claims.Any(c => c.Type == ClaimTypes.NameIdentifier) && apiResp.Result != null)
                 claims.Add(new Claim(ClaimTypes.NameIdentifier, apiResp.Result.UsuarioId.ToString()));
 
             if (!claims.Any(c => c.Type == ClaimTypes.Email) && apiResp.Result != null)
                 claims.Add(new Claim(ClaimTypes.Email, apiResp.Result.Email ?? string.Empty));
 
+            // 8) Devolver éxito y las claims listas para crear la identidad en el controlador
             return (true, string.Empty, claims);
 
         }

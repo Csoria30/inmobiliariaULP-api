@@ -38,7 +38,9 @@ namespace InmobiliariaMVC.Controllers
             var (success, error, claims) = await _authService.AuthenticateAsync(model);
             if (!success)
             {
-                ModelState.AddModelError(string.Empty, error ?? "Error autenticación");
+                ViewBag.Error = error ?? "Error de autenticación";
+                ModelState.AddModelError(string.Empty, error ?? "Error");
+
                 return View(model);
             }
 

@@ -1,5 +1,6 @@
 ﻿@model InmobiliariaDTO.UsuarioLoginDTO
 @{
+    Layout = null;
     ViewData["Title"] = "Iniciar sesión";
 }
 
@@ -29,18 +30,21 @@
             </div>
         }
 
-        <form asp-action="Login" asp-controller="Auth" autocomplete="off">
+        <form id="loginForm" asp-action="Login" asp-controller="Auth" method="post" autocomplete="off" novalidate>
+            @Html.AntiForgeryToken()
             <div class="mb-3">
                 <label asp-for="Email" class="form-label">
                     <i class="bi bi-envelope me-2"></i>Correo electrónico
                 </label>
-                <input asp-for="Email" class="form-control" placeholder="usuario@ejemplo.com" />
+                <input asp-for="Email" id="email" class="form-control" placeholder="usuario@ejemplo.com" />
+                <div class="invalid-feedback">Ingrese un correo válido.</div>
             </div>
             <div class="mb-4">
                 <label asp-for="Password" class="form-label">
                     <i class="bi bi-key me-2"></i>Contraseña
                 </label>
-                <input asp-for="Password" class="form-control" type="password" placeholder="••••••••" />
+                <input asp-for="Password" id="password" class="form-control" type="password" placeholder="••••••••" />
+                <div class="invalid-feedback">La contraseña no puede estar vacía.</div>
             </div>
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary">
@@ -58,5 +62,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/login-validation.js" asp-append-version="true"></script>
+
 </body>
 </html>

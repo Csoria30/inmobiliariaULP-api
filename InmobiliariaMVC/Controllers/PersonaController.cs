@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using InmobiliariaDTO;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using InmobiliariaDTO;
 
 namespace InmobiliariaMVC.Controllers
 {
+    [Authorize]
     public class PersonaController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
