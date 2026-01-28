@@ -215,7 +215,7 @@ namespace InmobiliariaAPI.Repository
                 .FirstOrDefaultAsync(u => u.Persona.Email == email && u.Persona.Estado);
 
             if (usuario == null || usuario.Persona == null)
-                throw new NotFoundException($"El usuario no existe.");
+                throw new NotFoundException($"Usuario o contraseña inválidos.");
 
             var persona = usuario.Persona;
             var dto = _personaMapeo.MapToObtenerDTO(persona);

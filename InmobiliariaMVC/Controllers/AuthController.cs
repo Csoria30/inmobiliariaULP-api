@@ -39,8 +39,6 @@ namespace InmobiliariaMVC.Controllers
             if (!success)
             {
                 ViewBag.Error = error ?? "Error de autenticación";
-                ModelState.AddModelError(string.Empty, error ?? "Error");
-
                 return View(model);
             }
 

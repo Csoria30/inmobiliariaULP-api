@@ -138,7 +138,7 @@ namespace InmobiliariaAPI.Middleware
             }
 
             // Si estamos en Development, añadir el message original (útil para debugging)
-            if (isDevelopment)
+            if (isDevelopment && !userMessages.Contains(exception.Message))
             {
                 userMessages.Insert(0, exception.Message);
             }
