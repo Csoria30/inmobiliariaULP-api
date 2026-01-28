@@ -46,7 +46,7 @@ namespace InmobiliariaMVC.Controllers
             var principal = new ClaimsPrincipal(identity);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            return RedirectToAction("Index", "Persona");
+            return RedirectToAction("Index", "Home");
         }
 
 
@@ -55,8 +55,19 @@ namespace InmobiliariaMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
+            // Limpia token/estado local
             HttpContext.Session.Remove("ApiToken");
+            HttpContext.Session.Clear();
+
+            // Si tu servicio necesita una llamada para invalidar token en API remota:
+            if (_authService != null)
+            {
+                await _authService.LogoutAsync();
+            }
+
+            // Desloguea la cookie
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
             return RedirectToAction("Login");
         }
 

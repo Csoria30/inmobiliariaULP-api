@@ -24,7 +24,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding-top: 0.1rem; /* altura del navbar, ajustar según corresponda */
+    padding-top: 0;
 }
 
 /* Wrapper que contiene sidebar y contenido */
@@ -36,7 +36,8 @@ body {
 /* Sidebar lateral */
 .admin-sidebar {
     width: 25rem;
-    min-height: 100vh;
+    /* Evitar min-height:100vh (conflicto con header fijo). Usar altura relativa al viewport menos header. */
+    min-height: auto;
     background-color: var(--sidebar-bg);
     display: flex;
     flex-direction: column;
@@ -45,8 +46,8 @@ body {
 
 /* Header del sidebar */
 .admin-sidebar-header {
-    padding: 2rem;
-    border-bottom: 0.1rem solid var(--sidebar-header-border);
+    padding: 1rem;
+    border-bottom: none; /* quitar lï¿½nea que podï¿½a verse entre header y sidebar */
     background-color: var(--sidebar-header-bg);
     flex-shrink: 0;
 }
@@ -103,17 +104,17 @@ body {
         }
 
 /* ================================
-   - ACORDEÓN Y SUBMENÚS DEL SIDEBAR - ESQUEMA VERDE
+   - ACORDEï¿½N Y SUBMENï¿½S DEL SIDEBAR - ESQUEMA VERDE
    ================================ */
 
-/* Fondo blanco por defecto para el cuerpo del acordeón */
+/* Fondo blanco por defecto para el cuerpo del acordeï¿½n */
 .accordion-body {
     background-color: var(--accordion-bg); /* blanco */
     color: var(--accordion-color); /* verde */
     transition: background-color 0.3s;
 }
 
-/* Cuando el acordeón está abierto, mantener fondo blanco */
+/* Cuando el acordeï¿½n estï¿½ abierto, mantener fondo blanco */
 .accordion-collapse.show .accordion-body,
 .accordion-item .accordion-collapse.show .accordion-body {
     background-color: #ffffff;
@@ -125,12 +126,12 @@ body {
     background-color: var(--accordion-bg);
 }
 
-/* Fondo blanco cuando el acordeón está abierto */
+/* Fondo blanco cuando el acordeï¿½n estï¿½ abierto */
 .accordion-collapse.show .admin-submenu {
     background-color: #ffffff;
 }
 
-/* Botón del acordeón - Estilo verde */
+/* Botï¿½n del acordeï¿½n - Estilo verde */
 .admin-sidebar .accordion-button {
     background-color: var(--accordion-bg) !important;
     color: var(--accordion-color) !important;
@@ -155,7 +156,7 @@ body {
         box-shadow: 0 0 0 0.2rem var(--accordion-focus-shadow) !important;
     }
 
-/* Ítems del submenú */
+/* ï¿½tems del submenï¿½ */
 .admin-submenu .list-group-item {
     padding: 0.8rem 1.5rem;
     border: 0;
@@ -170,7 +171,7 @@ body {
         transition: background-color 0.2s ease-in-out;
     }
 
-/* Links del submenú */
+/* Links del submenï¿½ */
 .admin-link {
     display: block;
     color: var(--link-color);
@@ -189,7 +190,7 @@ body {
         padding: 0.5rem 0.8rem;
     }
 
-/* Ítem activo del submenú */
+/* ï¿½tem activo del submenï¿½ */
 .admin-submenu .list-group-item.active-wrap {
     background-color: var(--submenu-active-bg);
     border-left-color: var(--submenu-active-border);

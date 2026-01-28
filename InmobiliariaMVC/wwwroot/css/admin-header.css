@@ -1,0 +1,111 @@
+:root {
+    --header-height: 64px;
+    --header-height-mobile: 56px;
+    --sidebar-width: 25rem; /* ajustado para coincidir con site.css */
+    --sidebar-min: 220px;
+    --green-600: 25,135,84; /* rgb(25,135,84) - bootstrap green */
+}
+
+@media (max-width: 576px) {
+    :root {
+        --header-height: var(--header-height-mobile);
+        --sidebar-width: 100%;
+    }
+}
+
+/* Reset b�sico para evitar m�rgenes inesperados que provocan l�neas */
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Header fijo y visible siempre */
+header.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    z-index: 1080;
+    backdrop-filter: saturate(110%) blur(6px);
+}
+
+/* Evita que el contenido quede debajo del header */
+main.flex-fill {
+    margin-top: var(--header-height);
+}
+
+/* Evitar borde inferior visible; si quieres un sutil separador usa color verde transl�cido */
+.app-header {
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    border-bottom: 1px solid rgba(var(--green-600), 0.06); /* sutil l�nea verde, no blanca */
+}
+
+/* Sidebar fijo, alineado justo bajo el header (compensa subp�xeles) */
+.admin-sidebar {
+    position: fixed;
+    top: var(--header-height); /* antes: calc(var(--header-height) - 1px) */
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-min);
+    overflow: auto; /* scroll solo en sidebar si su contenido excede la altura */
+    z-index: 1070;
+    background-color: var(--sidebar-bg, #fff); /* usar variable de colores si existe */
+    border-top: none; /* eliminar lnea blanca entre header y sidebar */
+}
+
+/* Contenido principal: solo este panel hace scroll */
+.admin-content {
+    margin-left: var(--sidebar-width);
+    height: calc(100vh - var(--header-height));
+    overflow: auto;
+    padding: 1.25rem;
+    background-color: #f8f9fa; /* contraste suave con la sidebar */
+}
+
+/* Layout wrapper ya no necesita forzar altura */
+.admin-layout-wrapper {
+    display: block;
+}
+
+/* Ajustes de la navbar para mantenerla compacta */
+.app-header .navbar {
+    min-height: var(--header-height);
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+}
+
+/* Avatar y dropdown m�s compactos */
+.app-header .rounded-circle {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+}
+
+/* Dropdown men� con borde verde y ligera animaci�n */
+.dropdown-menu {
+    transition: transform .12s ease, opacity .12s ease;
+    transform-origin: top right;
+}
+
+/* Ajustes responsivos: en pantallas peque�as el sidebar pasa a flujo normal (apilado) */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        position: static;
+        width: 100%;
+        min-width: 0;
+        box-shadow: none;
+        border-top: none;
+    }
+
+    .admin-content {
+        margin-left: 0;
+        height: auto; /* que el contenido fluya despu�s del sidebar */
+        min-height: calc(100vh - var(--header-height) - 60px);
+    }
+
+    .app-header .navbar-brand {
+        font-size: .98rem;
+    }
+}
