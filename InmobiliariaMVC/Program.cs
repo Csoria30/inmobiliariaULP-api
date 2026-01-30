@@ -35,6 +35,8 @@ builder.Services.AddTransient<TokenHandler>(); // Registrar el TokenHandler que 
 
 //Inyeccion de dependencias - Repositorios y Servicios
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPersonaService, PersonaService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 
 

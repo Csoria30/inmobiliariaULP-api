@@ -5,6 +5,10 @@ namespace InmobiliariaAPI.Services.IServices
 {
     public interface IPersonaService : ICommonService<PersonaObtenerDTO, PersonaCrearDTO, PersonaActualizarDTO>
     {
+
+        // Recupera todas las personas paginadas
+        Task<PagedResult<PersonaObtenerDTO>> GetAllPagedAsync(int page, int pageSize, string? search = null, string? orderBy = null);
+
         // Recupera la persona por dni
         Task<PersonaObtenerDTO> GetByDniAsync(string dni);
 

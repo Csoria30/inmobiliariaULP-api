@@ -48,10 +48,10 @@ namespace InmobiliariaAPI.Controllers
         // GET: api/personas
         [HttpGet]
         [Authorize(Policy = "Administrador")]
-        public async Task<IActionResult> GetAllPersonas()
+        public async Task<IActionResult> GetAllPersonas([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
         {
-            var personas = await _personaService.GetAllAsync();
-            return ApiOk(personas);
+            var paged = await _personaService.GetAllPagedAsync(page, pageSize);
+            return Ok(new { result = paged });
         }
 
         // GET: api/personas/{id}
@@ -125,6 +125,25 @@ namespace InmobiliariaAPI.Controllers
         }
 
 
+        // POST: api/personas/datatable
+        [HttpPost("datatable")]
+        public async Task<IActionResult> DataTable()
+        {
+            var draw = int.TryParse(Request.Form["draw"].FirstOrDefault(), out var d) ? d : 0;
+            var start = int.TryParse(Request.Form["start"].FirstOrDefault(), out var s) ? s : 0;
+            var length = int.TryParse(Request.Form["length"].FirstOrDefault(), out var l) ? l : 10;
+            var search = Request.Form["search[value]"].FirstOrDefault();
 
+            int page = (length > 0) ? (start / length) + 1 : 1;
+            var paged = await _personaService.GetAllPagedAsync(page, length, search);
+
+            return Ok(new
+            {
+                draw,
+                recordsTotal = paged.Total,
+                recordsFiltered = paged.TotalFiltered,
+                data = paged.Items
+            });
+        }
     }
 }

@@ -2,16 +2,19 @@
 using InmobiliariaAPI.Models;
 using InmobiliariaAPI.Models.DTO;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 
 namespace InmobiliariaAPI.Repository.IRepository
 {
     public class PersonaRepository : IPersonaRepository
     {
         private DataContext _dataContext;
+        private readonly string _connectionString;
 
-        public PersonaRepository(DataContext dataContext)
+        public PersonaRepository(DataContext dataContext, IConfiguration configuration)
         {
             _dataContext = dataContext;
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
         //Metodos Base
@@ -158,6 +161,144 @@ namespace InmobiliariaAPI.Repository.IRepository
             return await _dataContext.Personas
                 .Include(p => p.PersonaRoles)
                 .FirstOrDefaultAsync(p => p.Email == email && p.Estado);
+        }
+
+        public async Task<(ICollection<Persona> Items, int Total)> GetPagedAsync(int page, int pageSize)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = _dataContext.Personas
+                .AsNoTracking()
+                .Where(p => p.Estado)
+                .Include(p => p.PersonaRoles)
+                    .ThenInclude(pr => pr.Role)
+                .OrderBy(p => p.PersonaId);
+
+            var total = await query.CountAsync();
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, total);
+        }
+
+        public async Task<PagedResult<PersonaObtenerDTO>> GetAllPagedAsync(int page, int pageSize, string? search = null, string? orderBy = null)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            // 1) total sin filtro
+            int total = 0;
+            using (var countAllCmd = connection.CreateCommand())
+            {
+                countAllCmd.CommandText = "SELECT COUNT(*) FROM personas";
+                total = Convert.ToInt32(await countAllCmd.ExecuteScalarAsync());
+            }
+
+            // 2) preparar where para búsqueda (si existe)
+            string where = "";
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                where = @"WHERE p.dni LIKE @search OR p.apellido LIKE @search OR p.nombre LIKE @search OR p.email LIKE @search";
+            }
+
+            // 3) total filtrado
+            int totalFiltered = total;
+            using (var countFilteredCmd = connection.CreateCommand())
+            {
+                countFilteredCmd.CommandText = $"SELECT COUNT(*) FROM personas p {where}";
+                if (!string.IsNullOrWhiteSpace(search))
+                    countFilteredCmd.Parameters.AddWithValue("@search", $"%{search}%");
+                totalFiltered = Convert.ToInt32(await countFilteredCmd.ExecuteScalarAsync());
+            }
+
+            // 4) consulta paginada: seleccionar solo columnas de persona y aplicar LIMIT/OFFSET
+            var items = new List<PersonaObtenerDTO>();
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = $@"
+                    SELECT p.id_persona, p.dni, p.apellido, p.nombre, p.telefono, p.email, p.estado
+                    FROM personas p
+                    {where}
+                    {(!string.IsNullOrWhiteSpace(orderBy) ? $"ORDER BY {orderBy}" : "ORDER BY p.id_persona DESC")}
+                    LIMIT @limit OFFSET @offset;
+                ";
+
+                if (!string.IsNullOrWhiteSpace(search))
+                    cmd.Parameters.AddWithValue("@search", $"%{search}%");
+
+                cmd.Parameters.AddWithValue("@limit", pageSize);
+                cmd.Parameters.AddWithValue("@offset", (page - 1) * pageSize);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                var ids = new List<int>();
+                while (await reader.ReadAsync())
+                {
+                    var p = new PersonaObtenerDTO
+                    {
+                        PersonaId = reader.GetInt32("id_persona"),
+                        Dni = reader.GetString("dni"),
+                        Apellido = reader.GetString("apellido"),
+                        Nombre = reader.GetString("nombre"),
+                        Telefono = reader.IsDBNull(reader.GetOrdinal("telefono")) ? null! : reader.GetString("telefono"),
+                        Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null! : reader.GetString("email"),
+                        Estado = reader.GetBoolean("estado"),
+                        Roles = new List<RoleObtenerDTO>()
+                    };
+                    items.Add(p);
+                    ids.Add(p.PersonaId);
+                }
+
+                // 5) Cargar roles para los ids de la página (evita duplicados en la paginación)
+                if (ids.Any())
+                {
+                    // Obtengo roles activos por persona
+                    using var rolesCmd = connection.CreateCommand();
+                    rolesCmd.CommandText = $@"
+                        SELECT pr.id_persona, r.id_rol AS rolId, r.nombre, r.descripcion
+                        FROM persona_roles pr
+                        INNER JOIN roles r ON pr.id_rol = r.id_rol AND r.estado = 1
+                        WHERE pr.id_persona IN ({string.Join(",", ids)})
+                    ";
+                    using var rolesReader = await rolesCmd.ExecuteReaderAsync();
+                    var rolesByPersona = new Dictionary<int, List<RoleObtenerDTO>>();
+                    while (await rolesReader.ReadAsync())
+                    {
+                        int personaId = rolesReader.GetInt32("id_persona");
+                        var role = new RoleObtenerDTO
+                        {
+                            RolId = rolesReader.GetInt32("rolId"),
+                            Nombre = rolesReader.GetString("nombre"),
+                            Descripcion = rolesReader.IsDBNull(rolesReader.GetOrdinal("descripcion")) ? null! : rolesReader.GetString("descripcion")
+                        };
+                        if (!rolesByPersona.TryGetValue(personaId, out var list))
+                        {
+                            list = new List<RoleObtenerDTO>();
+                            rolesByPersona[personaId] = list;
+                        }
+                        list.Add(role);
+                    }
+
+                    // Mapear roles a items
+                    foreach (var it in items)
+                    {
+                        if (rolesByPersona.TryGetValue(it.PersonaId, out var rlist))
+                            it.Roles = rlist;
+                    }
+                }
+            }
+
+            return new PagedResult<PersonaObtenerDTO>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                TotalFiltered = totalFiltered
+            };
         }
 
     }

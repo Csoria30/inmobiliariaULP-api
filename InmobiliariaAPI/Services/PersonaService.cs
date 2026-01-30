@@ -276,6 +276,22 @@ namespace InmobiliariaAPI.Repository
                 pr.Estado && pr.Role != null && set.Contains(pr.Role.Nombre?.Trim() ?? string.Empty));
         }
 
+        public async Task<PagedResult<PersonaObtenerDTO>> GetAllPagedAsync(int page, int pageSize)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var (items, total) = await _personaRepository.GetPagedAsync(page, pageSize);
+            var dtoItems = items.Select(p => _personaMapeo.MapToObtenerDTO(p)).ToList();
+
+            return new PagedResult<PersonaObtenerDTO>
+            {
+                Items = dtoItems,
+                Page = page,
+                PageSize = pageSize,
+                Total = total
+            };
+        }
 
     }
 }

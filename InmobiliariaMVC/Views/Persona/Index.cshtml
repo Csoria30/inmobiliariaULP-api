@@ -1,38 +1,114 @@
 ﻿@model IEnumerable<InmobiliariaDTO.PersonaObtenerDTO>
-
-<h2>Personas</h2>
-
-<p>
-    <a class="btn btn-primary" href="@Url.Action("Create")">Crear persona</a>
-</p>
-
-@if (Model == null || !Model.Any())
-{
-    <p>No hay personas.</p>
+@{
+    ViewData["Title"] = "Personas";
+    var page = ViewBag.Page ?? 1;
+    var pageSize = ViewBag.PageSize ?? 10;
+    var total = ViewBag.Total ?? 0;
+    var totalPages = ViewBag.TotalPages ?? (int)Math.Ceiling((double)total / pageSize);
 }
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>DNI</th>
-                <th>Apellido</th>
-                <th>Nombre</th>
-                <th>Email</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var p in Model)
-            {
-                <tr>
-                    <td>@p.PersonaId</td>
-                    <td>@p.Dni</td>
-                    <td>@p.Apellido</td>
-                    <td>@p.Nombre</td>
-                    <td>@p.Email</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Personas</h2>
+        <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i>Crear persona</a>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">No hay personas.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>DNI</th>
+                        <th>Apellido</th>
+                        <th>Nombre</th>
+                        <th>Teléfono</th>
+                        <th>Perfiles</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model)
+                    {
+                        <tr>
+                            <td>@p.PersonaId</td>
+                            <td>@p.Dni</td>
+                            <td>@p.Apellido</td>
+                            <td>@p.Nombre</td>
+                            <td>@p.Telefono</td>
+                            <td>
+                                @{
+                                    var roles = p.Roles?.Select(r => r.Nombre).Where(n => !string.IsNullOrWhiteSpace(n)).ToArray() ?? Array.Empty<string>();
+                                }
+                                @string.Join(", ", roles)
+                            </td>
+                            <td>
+                                @if (p.Estado) { <span class="badge bg-success">Activo</span> }
+                                else { <span class="badge bg-secondary">Inactivo</span> }
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Edit" asp-route-id="@p.PersonaId" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@p.PersonaId" class="btn btn-sm btn-outline-info me-1">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@p.PersonaId" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <nav aria-label="Paginación personas">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(page <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(page - 1)" asp-route-pageSize="@pageSize">Anterior</a>
+                </li>
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == page ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-pageSize="@pageSize">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(page >= totalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(page + 1)" asp-route-pageSize="@pageSize">Siguiente</a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="text-center text-muted small">
+            @* Mostrando página @page  de @totalPages — @total persona(s) en total. *@
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    $('#personasTable').DataTable({
+      processing: true,
+      serverSide: true,
+      ajax: {
+        url: '/api/personas/datatable', // o '/api/personas' si devuelves PagedResult y transformas en client
+        type: 'POST'
+        // si usas antiforgery, manda el token aquí
+      },
+      columns: [
+        { data: 'personaId' }, { data: 'dni' }, { data: 'apellido' }, { data: 'nombre' },
+        // ...
+      ]
+    });
+</script>
 }

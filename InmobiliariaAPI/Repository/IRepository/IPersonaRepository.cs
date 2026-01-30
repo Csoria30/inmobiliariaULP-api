@@ -1,4 +1,5 @@
 ﻿using InmobiliariaAPI.Models;
+using InmobiliariaAPI.Models.DTO;
 
 namespace InmobiliariaAPI.Repository.IRepository
 {
@@ -11,5 +12,9 @@ namespace InmobiliariaAPI.Repository.IRepository
         Task<bool> ExistsByEmailAsync(string email);
         Task<Persona> GetByDniAsync(string dni);
         Task<Persona> GetByEmailAsync(string email);
+
+        //Paginacion 
+        Task<(ICollection<Persona> Items, int Total)> GetPagedAsync(int page, int pageSize);
+        Task<PagedResult<PersonaObtenerDTO>> GetAllPagedAsync(int page, int pageSize, string? search = null, string? orderBy = null);
     }
 }
