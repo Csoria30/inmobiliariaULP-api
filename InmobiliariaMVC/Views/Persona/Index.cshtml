@@ -5,12 +5,29 @@
     var pageSize = ViewBag.PageSize ?? 10;
     var total = ViewBag.Total ?? 0;
     var totalPages = ViewBag.TotalPages ?? (int)Math.Ceiling((double)total / pageSize);
+    var search = ViewBag.Search ?? "";
 }
 
 <div class="container-fluid px-4 py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0">Personas</h2>
-        <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i>Crear persona</a>
+
+        <div class="d-flex align-items-center">
+            <form class="d-flex me-2" method="get" asp-action="Index">
+                <input type="hidden" name="pageSize" value="@pageSize" />
+                <input type="hidden" name="page" value="1" />
+                <input class="form-control form-control-sm me-2" name="search" placeholder="Buscar por nombre, apellido o DNI" value="@search" />
+                <button class="btn btn-sm btn-outline-primary me-2" type="submit"><i class="bi bi-search"></i></button>
+                @if (!string.IsNullOrWhiteSpace(search))
+                {
+                    <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("Index", new { page = 1, pageSize = pageSize })" title="Limpiar búsqueda">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+            </form>
+
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i>Crear persona</a>
+        </div>
     </div>
 
     @if (Model == null || !Model.Any())
@@ -49,8 +66,15 @@
                                 @string.Join(", ", roles)
                             </td>
                             <td>
-                                @if (p.Estado) { <span class="badge bg-success">Activo</span> }
-                                else { <span class="badge bg-secondary">Inactivo</span> }
+                                @if (p.Estado)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
                             </td>
                             <td class="text-center">
                                 <a asp-action="Edit" asp-route-id="@p.PersonaId" class="btn btn-sm btn-outline-primary me-1">
@@ -73,42 +97,20 @@
         <nav aria-label="Paginación personas">
             <ul class="pagination justify-content-center">
                 <li class="page-item @(page <= 1 ? "disabled" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-page="@(page - 1)" asp-route-pageSize="@pageSize">Anterior</a>
+                    <a class="page-link" asp-action="Index" asp-route-page="@(page - 1)" asp-route-pageSize="@pageSize" asp-route-search="@search">Anterior</a>
                 </li>
 
                 @for (int i = 1; i <= totalPages; i++)
                 {
                     <li class="page-item @(i == page ? "active" : "")">
-                        <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-pageSize="@pageSize">@i</a>
+                        <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-pageSize="@pageSize" asp-route-search="@search">@i</a>
                     </li>
                 }
 
                 <li class="page-item @(page >= totalPages ? "disabled" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-page="@(page + 1)" asp-route-pageSize="@pageSize">Siguiente</a>
+                    <a class="page-link" asp-action="Index" asp-route-page="@(page + 1)" asp-route-pageSize="@pageSize" asp-route-search="@search">Siguiente</a>
                 </li>
             </ul>
         </nav>
-
-        <div class="text-center text-muted small">
-            @* Mostrando página @page  de @totalPages — @total persona(s) en total. *@
-        </div>
     }
 </div>
-
-@section Scripts {
-<script>
-    $('#personasTable').DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: {
-        url: '/api/personas/datatable', // o '/api/personas' si devuelves PagedResult y transformas en client
-        type: 'POST'
-        // si usas antiforgery, manda el token aquí
-      },
-      columns: [
-        { data: 'personaId' }, { data: 'dni' }, { data: 'apellido' }, { data: 'nombre' },
-        // ...
-      ]
-    });
-</script>
-}

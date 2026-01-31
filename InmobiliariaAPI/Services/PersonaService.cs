@@ -6,6 +6,7 @@ using InmobiliariaAPI.Models;
 using InmobiliariaAPI.Models.DTO;
 using InmobiliariaAPI.Repository.IRepository;
 using InmobiliariaAPI.Services.IServices;
+using InmobiliariaDTO;
 using InmobiliariaAPI.Validators;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -276,21 +277,30 @@ namespace InmobiliariaAPI.Repository
                 pr.Estado && pr.Role != null && set.Contains(pr.Role.Nombre?.Trim() ?? string.Empty));
         }
 
-        public async Task<PagedResult<PersonaObtenerDTO>> GetAllPagedAsync(int page, int pageSize)
+        public async Task<PagedResult<PersonaObtenerDTO>> GetAllPagedAsync(int page, int pageSize, string? search = null, string? orderBy = null)
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            var (items, total) = await _personaRepository.GetPagedAsync(page, pageSize);
-            var dtoItems = items.Select(p => _personaMapeo.MapToObtenerDTO(p)).ToList();
+            // El repositorio ya devuelve PagedResult<PersonaObtenerDTO>
+            var pagedFromRepo = await _personaRepository.GetAllPagedAsync(page, pageSize, search, orderBy);
 
-            return new PagedResult<PersonaObtenerDTO>
+            // Si por alguna razón el repo devuelve null, devolver un objeto vacío consistente
+            if (pagedFromRepo == null)
             {
-                Items = dtoItems,
-                Page = page,
-                PageSize = pageSize,
-                Total = total
-            };
+                return new PagedResult<PersonaObtenerDTO>
+                {
+                    Items = new List<PersonaObtenerDTO>(),
+                    Page = page,
+                    PageSize = pageSize,
+                    Total = 0,
+                    TotalFiltered = 0,
+                    TotalPages = 0
+                };
+            }
+
+            // Si quisieras transformar/normalizar los DTOs, hazlo aquí; por ahora devolvemos tal como viene
+            return pagedFromRepo;
         }
 
     }

@@ -12,6 +12,7 @@ using InmobiliariaAPI.Services;
 using InmobiliariaAPI.Services.IServices;
 using InmobiliariaAPI.Swagger;
 using InmobiliariaAPI.Validators;
+using InmobiliariaDTO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

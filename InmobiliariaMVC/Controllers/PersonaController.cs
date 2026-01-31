@@ -28,7 +28,7 @@ namespace InmobiliariaMVC.Controllers
             _configuration = configuration;
             _personaService = personaService;
             _roleService = roleService;
-        } 
+        }
 
         //public async Task<IActionResult> Index()
         //{
@@ -54,11 +54,16 @@ namespace InmobiliariaMVC.Controllers
         //    return View();
         //}
 
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 2)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 2, string? search = null)
         {
             var client = _httpClientFactory.CreateClient("ApiClient");
 
-            using var resp = await client.GetAsync($"personas?page={page}&pageSize={pageSize}");
+            // Construir query incluyendo search si existe
+            var url = $"personas?page={page}&pageSize={pageSize}";
+            if (!string.IsNullOrWhiteSpace(search))
+                url += $"&search={Uri.EscapeDataString(search)}";
+
+            using var resp = await client.GetAsync(url);
             if (!resp.IsSuccessStatusCode)
                 return StatusCode((int)resp.StatusCode);
 
@@ -67,11 +72,13 @@ namespace InmobiliariaMVC.Controllers
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
+            ViewBag.Search = search; // para que la vista mantenga el valor del input
+
             if (!doc.RootElement.TryGetProperty("result", out var resultElement))
                 return View(new List<PersonaObtenerDTO>());
 
-            // Esperamos: result es un objeto paginado con "items","page","pageSize","total","totalPages"
-            if (resultElement.ValueKind == JsonValueKind.Object)
+            // Caso esperado: result es un objeto paginado con "items"
+            if (resultElement.ValueKind == JsonValueKind.Object && resultElement.TryGetProperty("items", out _))
             {
                 var paged = resultElement.Deserialize<PagedResult<PersonaObtenerDTO>>(options)
                             ?? new PagedResult<PersonaObtenerDTO> { Items = new List<PersonaObtenerDTO>(), Page = page, PageSize = pageSize, Total = 0, TotalPages = 1 };

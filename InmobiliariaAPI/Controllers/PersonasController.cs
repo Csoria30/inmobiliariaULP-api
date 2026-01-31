@@ -3,6 +3,7 @@ using InmobiliariaAPI.Models.DTO;
 using InmobiliariaAPI.Repository.IRepository;
 using InmobiliariaAPI.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
+using InmobiliariaDTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -50,7 +51,7 @@ namespace InmobiliariaAPI.Controllers
         [Authorize(Policy = "Administrador")]
         public async Task<IActionResult> GetAllPersonas([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
         {
-            var paged = await _personaService.GetAllPagedAsync(page, pageSize);
+            var paged = await _personaService.GetAllPagedAsync(page, pageSize, search);
             return Ok(new { result = paged });
         }
 

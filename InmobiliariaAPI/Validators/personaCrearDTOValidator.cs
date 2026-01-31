@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using InmobiliariaAPI.Models.DTO;
+using InmobiliariaDTO;
 
 namespace InmobiliariaAPI.Validators
 {

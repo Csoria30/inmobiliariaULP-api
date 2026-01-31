@@ -7,7 +7,8 @@
         public string Nombre { get; set; }
         public string Telefono { get; set; }
         public string Email { get; set; }
-        
+        public int IdRol { get; set; }
+
         //Lista de roles, porque puede tener mas de uno 
         public List<int> IdRoles { get; set; } = new();
     }

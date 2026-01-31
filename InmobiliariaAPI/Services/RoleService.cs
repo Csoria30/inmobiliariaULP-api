@@ -4,6 +4,7 @@ using InmobiliariaAPI.Models;
 using InmobiliariaAPI.Models.DTO;
 using InmobiliariaAPI.Repository;
 using InmobiliariaAPI.Repository.IRepository;
+using InmobiliariaDTO;
 using InmobiliariaAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,6 +1,7 @@
 ﻿using InmobiliariaAPI.InmobiliariaMappers;
 using InmobiliariaAPI.Models;
 using InmobiliariaAPI.Models.DTO;
+using InmobiliariaDTO;
 
 namespace InmobiliariaAPI.Mappers
 {

@@ -1,5 +1,6 @@
 ﻿using InmobiliariaAPI.Models.DTO;
 using InmobiliariaAPI.Repository.IRepository;
+using InmobiliariaDTO;
 
 namespace InmobiliariaAPI.Services.IServices
 {
