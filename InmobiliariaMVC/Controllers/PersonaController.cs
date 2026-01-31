@@ -98,9 +98,18 @@ namespace InmobiliariaMVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var roles = await _roleService.GetAllAsync();
-            ViewBag.Roles = roles; 
-            return View(roles);
+            // Usar el servicio de roles centralizado
+            var roles = await _roleService.GetAllAsync() ?? new List<RoleObtenerDTO>();
+            ViewBag.Roles = roles;
+
+            // DTO inicial para evitar NRE en la vista
+            var model = new PersonaCrearDTO
+            {
+                IdRoles = new List<int>()
+            };
+
+            return View(model);
+
         }
 
         //! POST: PersonaController/Create
@@ -108,7 +117,6 @@ namespace InmobiliariaMVC.Controllers
         [ValidateAntiForgeryToken] // Buena práctica para prevenir ataques CSRF
         public async Task<IActionResult> Create(PersonaCrearDTO dto)
         {
-
             try
             {
                 if (!ModelState.IsValid)
@@ -118,19 +126,17 @@ namespace InmobiliariaMVC.Controllers
                 if (dto.IdRoles == null || dto.IdRoles.Count == 0)
                 {
                     ModelState.AddModelError(nameof(dto.IdRoles), "Seleccione al menos un rol.");
+                    
                     // repoblar ViewBag/Model de roles si usas la vista que los muestra
                     ViewBag.Roles = await _roleService.GetAllAsync();
                     return View(dto);
                 }
-
-
 
                 var personaCreada = await _personaService.CreateAsync(dto);
 
                 TempData["Notificacion"] = "Persona creada correctamente.";
                 TempData["NotificacionTipo"] = "success";
 
-                // Si necesitas crear usuario después, usa personaCreada.PersonaId y llama a tu servicio de usuario
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex) // errores esperados del API (duplicados, rol inexistente, etc.)
@@ -139,7 +145,7 @@ namespace InmobiliariaMVC.Controllers
                 TempData["NotificacionTipo"] = "danger";
                 return View(dto);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 TempData["Error"] = "Error interno al crear la persona.";
                 return View("Error");

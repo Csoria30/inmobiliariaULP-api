@@ -8,11 +8,16 @@ using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// 1) Configuración básica y MVC
+//*******************************************************************************   
+
+// Añadir soporte MVC / Views
 builder.Services.AddControllersWithViews();
 
 
-//Politicas de autorizacion
+// 2) Configuración de autorización (políticas de roles)
+//*******************************************************************************   
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Administrador", policy => policy.RequireRole(RoleNames.Administrador));
@@ -22,7 +27,12 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("PropietarioOrAdmin", policy => policy.RequireRole(RoleNames.Propietario, RoleNames.Administrador));
 });
 
-// Session y acceso al HttpContext para obtener TOKEN
+
+// 3) Session, HttpContext y TokenHandler
+//*******************************************************************************   
+
+// - Session se usa para guardar el token de la API
+// - TokenHandler lee la sesión y pone Authorization: Bearer <token> en cada petición
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -30,17 +40,16 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+// Para que TokenHandler pueda acceder al HttpContext
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddTransient<TokenHandler>(); // Registrar el TokenHandler que inyecta el Authorization header desde el HttpContext/Session
-
-//Inyeccion de dependencias - Repositorios y Servicios
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IPersonaService, PersonaService>();
-builder.Services.AddScoped<IRoleService, RoleService>();
+// Registrar TokenHandler como DelegatingHandler (se añade a HttpClient)
+builder.Services.AddTransient<TokenHandler>();
 
 
+// 4) Lectura de configuración de la API
+//*******************************************************************************   
 
-// Leer configuración API
 var apiSection = builder.Configuration.GetSection("ApiClient");
 if (!apiSection.Exists())
     apiSection = builder.Configuration.GetSection("ApiSettings");
@@ -48,6 +57,9 @@ if (!apiSection.Exists())
 var baseAddressString = apiSection.GetValue<string>("BaseAddress") ?? "http://localhost:5258/";
 if (!Uri.TryCreate(baseAddressString, UriKind.Absolute, out var baseAddress))
     baseAddress = new Uri("http://localhost:5258/");
+
+// 5) Registrar HttpClients: cliente nombrado y/o typed clients (usar uno u otro)
+//*******************************************************************************   
 
 // HttpClient para consumir la API, usando TokenHandler
 builder.Services.AddHttpClient("ApiClient", client =>
@@ -57,7 +69,32 @@ builder.Services.AddHttpClient("ApiClient", client =>
 })
 .AddHttpMessageHandler<TokenHandler>();
 
-// Cookie auth para la app cliente (usamos claims del JWT)
+// Registrar servicios como typed clients — el framework inyectará un HttpClient configurado
+builder.Services.AddHttpClient<IPersonaService, PersonaService>(client =>
+{
+    client.BaseAddress = baseAddress;
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+})
+.AddHttpMessageHandler<TokenHandler>();
+
+builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
+{
+    client.BaseAddress = baseAddress;
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+})
+.AddHttpMessageHandler<TokenHandler>();
+
+
+// 6) Otros servicios que no dependen de HttpClient
+//*******************************************************************************   
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+
+// 7) Authentication cookies
+//*******************************************************************************   
+
+// - Usa cookies para mantener la sesión de usuario en la app
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -67,9 +104,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 
+// 8) Construir app
+//*******************************************************************************   
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// 9) Pipeline HTTP
+//*******************************************************************************   
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -80,16 +122,18 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseSession();
+app.UseSession();           
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Ruta personalizada para login amigable
+// 10) Ruta personalizada para login amigable
+//*******************************************************************************   
+
 app.MapControllerRoute(name: "login", pattern: "iniciar-sesion/{**accion}", defaults: new { controller = "Auth", action = "Login" });
-app.MapControllerRoute(name: "login", pattern: "login/{**accion}", defaults: new { controller = "Auth", action = "Login" });
-app.MapControllerRoute(name: "login", pattern: "entrar/{**accion}", defaults: new { controller = "Auth", action = "Login" });
-app.MapControllerRoute(name: "login", pattern: "inicio/{**accion}", defaults: new { controller = "Auth", action = "Login" });
+app.MapControllerRoute(name: "login_alt1", pattern: "login/{**accion}", defaults: new { controller = "Auth", action = "Login" });
+app.MapControllerRoute(name: "login_alt2", pattern: "entrar/{**accion}", defaults: new { controller = "Auth", action = "Login" });
+app.MapControllerRoute(name: "login_alt3", pattern: "inicio/{**accion}", defaults: new { controller = "Auth", action = "Login" });
 
 app.MapControllerRoute(
     name: "default",

@@ -1,6 +1,7 @@
 ﻿using InmobiliariaDTO;
 using InmobiliariaMVC.Services.Interfaces;
 using System.Text.Json;
+using System.Net.Http.Json;
 
 namespace InmobiliariaMVC.Services.Implementations
 {
@@ -16,12 +17,9 @@ namespace InmobiliariaMVC.Services.Implementations
 
         public async Task<PersonaObtenerDTO> CreateAsync(PersonaCrearDTO dto)
         {
-            if(dto == null)
-            {
-                throw new ArgumentNullException(nameof(dto), "El objeto dto no puede ser nulo.");
-            }
-
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
             var resp = await _http.PostAsJsonAsync("api/Personas", dto);
+
             if (resp.IsSuccessStatusCode)
             {
                 var persona = await resp.Content.ReadFromJsonAsync<PersonaObtenerDTO>(_jsonOptions);
